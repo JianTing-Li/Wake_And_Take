@@ -111,7 +111,8 @@ struct FavoritesView: View {
         if let next {
             NavigationLink(value: next.id) { label }
         } else {
-            label
+            // Leave room where the chevron would be so bells line up.
+            label.padding(.trailing, 19)
         }
     }
 

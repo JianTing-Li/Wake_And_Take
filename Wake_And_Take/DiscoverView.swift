@@ -188,7 +188,7 @@ struct BagCard: View {
                 HStack(alignment: .firstTextBaseline) {
                     Text(bag.store).font(.headline)
                     Spacer()
-                    Label(String(format: "%.1f", bag.rating), systemImage: "star.fill")
+                    Label(String(format: "%.1f (%d)", bag.rating, bag.reviewCount), systemImage: "star.fill")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.secondary)
                 }

@@ -63,7 +63,7 @@ struct BagDetailView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(bag.name).font(.title2.weight(.bold))
-                        Label(String(format: "%.1f · %@", bag.rating, bag.category.rawValue), systemImage: "star.fill")
+                        Label(String(format: "%.1f (%d ratings) · %@", bag.rating, bag.reviewCount, bag.category.rawValue), systemImage: "star.fill")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }

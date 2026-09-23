@@ -138,9 +138,15 @@ struct PickupStatusPill: View {
         case .missed: ("Missed pickup", .secondary)
         case .cancelled: ("Cancelled", .secondary)
         }
-        Text(text)
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(color)
+        HStack(spacing: 6) {
+            Text(text).foregroundStyle(color)
+            if let review = reservation.review {
+                StarsDisplay(rating: review.overall, size: 10)
+            } else if reservation.canReview(at: now) {
+                Text("· Rate your bag").foregroundStyle(.orange)
+            }
+        }
+        .font(.caption.weight(.semibold))
     }
 }
 
@@ -150,6 +156,12 @@ struct PickupView: View {
     let store: BagStore
     let reservationID: Reservation.ID
 
+    private struct RateRequest: Identifiable {
+        let id = UUID()
+        let stars: Int
+    }
+    @State private var rateRequest: RateRequest?
+
     var body: some View {
         if let reservation = store.reservation(id: reservationID) {
             TimelineView(.periodic(from: .now, by: 15)) { context in
@@ -157,6 +169,9 @@ struct PickupView: View {
             }
             .navigationTitle(reservation.bag.store)
             .navigationBarTitleDisplayMode(.inline)
+            .sheet(item: $rateRequest) { request in
+                RateOrderView(store: store, reservationID: reservationID, initialStars: request.stars)
+            }
         } else {
             ContentUnavailableView("Order not found", systemImage: "bag")
         }
@@ -203,6 +218,8 @@ struct PickupView: View {
                 }
 
                 if status == .collected {
+                    ratingCard(r, now: now)
+
                     VStack(spacing: 6) {
                         Text("This order's impact").font(.headline)
                         Text("You saved \(r.savings.formatted(.currency(code: "USD"))) and about \(String(format: "%.1f", Double(r.quantity) * Impact.co2ePerBag)) kg of CO₂e.")
@@ -237,6 +254,40 @@ struct PickupView: View {
             case .collected, .missed, .cancelled:
                 EmptyView()
             }
+        }
+    }
+
+    @ViewBuilder
+    private func ratingCard(_ r: Reservation, now: Date) -> some View {
+        if let review = r.review {
+            VStack(spacing: 8) {
+                Text("You rated this bag").font(.headline)
+                StarsDisplay(rating: review.overall, size: 22)
+                if !review.tags.isEmpty {
+                    Text(ReviewTag.allCases.filter(review.tags.contains).map(\.rawValue).joined(separator: " · "))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(16)
+            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
+        } else if r.canReview(at: now) {
+            VStack(spacing: 10) {
+                Text("How was your bag?").font(.headline)
+                StarRating(
+                    rating: Binding(get: { 0 }, set: { rateRequest = RateRequest(stars: $0) }),
+                    size: 34,
+                    label: "Rate your bag"
+                )
+                Text("Tap a star to rate \(r.bag.store)")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(16)
+            .background(Color.yolk.opacity(0.2), in: RoundedRectangle(cornerRadius: 16))
         }
     }
 

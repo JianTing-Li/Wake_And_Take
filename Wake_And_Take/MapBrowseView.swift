@@ -30,13 +30,15 @@ struct MapBrowseView: View {
                     .foregroundStyle(Color.splashTeal.opacity(0.08))
                     .stroke(Color.splashTeal.opacity(0.5), lineWidth: 1.5)
 
-                Annotation("You", coordinate: Self.home) {
+                Annotation("You", coordinate: Self.home, anchor: .center) {
                     Circle()
                         .fill(.blue)
                         .frame(width: 16, height: 16)
                         .overlay(Circle().stroke(.white, lineWidth: 3))
                         .shadow(radius: 2)
+                        .accessibilityLabel("Your location")
                 }
+                .annotationTitles(.hidden)
 
                 ForEach(bags) { bag in
                     Annotation(bag.store, coordinate: bag.coordinate, anchor: .bottom) {
@@ -103,6 +105,7 @@ struct MapBrowseView: View {
                 legendDot(.splashTeal, "Available now")
                 legendDot(.orange, "Opens later")
                 legendDot(.gray, "Gone")
+                legendDot(.blue, "You")
             }
             .font(.caption)
             .foregroundStyle(.secondary)

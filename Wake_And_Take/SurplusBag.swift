@@ -41,7 +41,7 @@ struct SurplusBag: Identifiable {
     let category: FoodCategory
     let address: String
     let distanceMiles: Double
-    let rating: Double
+    var rating: Double
     let originalPrice: Double
     let price: Double
     let pickupStart: Date
@@ -52,6 +52,7 @@ struct SurplusBag: Identifiable {
     var dietary: Set<DietaryTag> = []
     var latitude = 40.7465
     var longitude = -73.9420
+    var reviewCount = 0
 
     var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
@@ -110,6 +111,15 @@ struct Reservation: Identifiable {
     var collectedAt: Date?
     var cancelledAt: Date?
     var cancelReason: CancelReason?
+    var review: Review?
+
+    /// Picked-up orders can be rated once, for up to two days.
+    static let reviewWindow: TimeInterval = 48 * 60 * 60
+
+    func canReview(at now: Date) -> Bool {
+        guard review == nil, let collectedAt else { return false }
+        return now.timeIntervalSince(collectedAt) < Self.reviewWindow
+    }
 
     var total: Double { bag.price * Double(quantity) }
     var savings: Double { (bag.originalPrice - bag.price) * Double(quantity) }
@@ -139,6 +149,29 @@ struct Reservation: Identifiable {
     func canChange(at now: Date) -> Bool {
         isActive(at: now) && now < changeDeadline
     }
+}
+
+enum ReviewTag: String, CaseIterable, Identifiable {
+    case greatValue = "Great value"
+    case fresh = "Fresh"
+    case friendlyStaff = "Friendly staff"
+    case quickPickup = "Quick pickup"
+    case smallPortion = "Not much food"
+    case longWait = "Long wait"
+
+    var id: String { rawValue }
+    var isPositive: Bool { ![.smallPortion, .longWait].contains(self) }
+}
+
+/// A customer's rating of a bag they picked up.
+struct Review {
+    var overall: Int
+    var quality: Int
+    var value: Int
+    var pickup: Int
+    var tags: Set<ReviewTag> = []
+    var comment = ""
+    var submittedAt = Date.now
 }
 
 /// Running totals for bags a customer has actually collected.
@@ -298,6 +331,23 @@ final class BagStore {
         }
     }
 
+    /// Saves a rating and folds it into the store's average.
+    func submitReview(_ review: Review, for id: Reservation.ID, at now: Date = .now) -> Bool {
+        guard let r = reservations.firstIndex(where: { $0.id == id }),
+              reservations[r].canReview(at: now),
+              (1...5).contains(review.overall)
+        else { return false }
+
+        reservations[r].review = review
+        let storeName = reservations[r].bag.store
+        for i in bags.indices where bags[i].store == storeName {
+            let total = bags[i].rating * Double(bags[i].reviewCount) + Double(review.overall)
+            bags[i].reviewCount += 1
+            bags[i].rating = total / Double(bags[i].reviewCount)
+        }
+        return true
+    }
+
     var impact: Impact {
         reservations.filter { $0.collectedAt != nil }.reduce(into: Impact()) { total, r in
             total.bagsRescued += r.quantity
@@ -320,7 +370,7 @@ extension SurplusBag {
                 address: "31-10 Queens Blvd, Long Island City", distanceMiles: 0.2, rating: 4.8,
                 originalPrice: 15, price: 4.99, pickupStart: at(-15), pickupEnd: at(25), bagsLeft: 2,
                 details: "Bagels, cream cheese tubs, and a breakfast sandwich or two from this morning's bake.",
-                latitude: 40.7479, longitude: -73.9387
+                latitude: 40.7479, longitude: -73.9387, reviewCount: 212
             ),
             SurplusBag(
                 name: "Pastry Bag", store: "Corner Crumb Bakery", category: .bakery,
@@ -328,7 +378,7 @@ extension SurplusBag {
                 originalPrice: 18, price: 5.99, pickupStart: at(-5), pickupEnd: at(55), bagsLeft: 4,
                 details: "A mix of croissants, muffins, and scones that didn't sell at opening.",
                 dietary: [.vegetarian],
-                latitude: 40.7506, longitude: -73.9474
+                latitude: 40.7506, longitude: -73.9474, reviewCount: 348
             ),
             SurplusBag(
                 name: "Coffee & Pastry Bag", store: "Daily Grind Coffee", category: .coffee,
@@ -336,14 +386,14 @@ extension SurplusBag {
                 originalPrice: 12, price: 3.99, pickupStart: at(10), pickupEnd: at(70), bagsLeft: 5,
                 details: "A drip coffee with oat milk plus two of today's vegan pastries.",
                 dietary: [.vegetarian, .vegan, .dairyFree],
-                latitude: 40.7422, longitude: -73.9420
+                latitude: 40.7422, longitude: -73.9420, reviewCount: 96
             ),
             SurplusBag(
                 name: "Morning Deli Bag", store: "Early Bird Deli", category: .breakfast,
                 address: "10-50 Jackson Ave, Long Island City", distanceMiles: 0.7, rating: 4.5,
                 originalPrice: 14, price: 4.49, pickupStart: at(-30), pickupEnd: at(90), bagsLeft: 3,
                 details: "Egg sandwiches, fruit cups, and yogurt parfaits from the breakfast rush.",
-                latitude: 40.7393, longitude: -73.9514
+                latitude: 40.7393, longitude: -73.9514, reviewCount: 57
             ),
             SurplusBag(
                 name: "Viennoiserie Bag", store: "Petit Matin Pâtisserie", category: .bakery,
@@ -351,7 +401,7 @@ extension SurplusBag {
                 originalPrice: 22, price: 6.99, pickupStart: at(-20), pickupEnd: at(40), bagsLeft: 0,
                 details: "Pain au chocolat, almond croissants, and brioche.",
                 dietary: [.vegetarian],
-                latitude: 40.7515, longitude: -73.9576
+                latitude: 40.7515, longitude: -73.9576, reviewCount: 410
             ),
             SurplusBag(
                 name: "Fresh Produce Bag", store: "Green Basket Market", category: .grocery,
@@ -359,7 +409,7 @@ extension SurplusBag {
                 originalPrice: 20, price: 5.49, pickupStart: at(-10), pickupEnd: at(120), bagsLeft: 6,
                 details: "Seasonal fruit, yogurt, and gluten-free granola close to its best-by date.",
                 dietary: [.vegetarian, .glutenFree],
-                latitude: 40.7355, longitude: -73.9572
+                latitude: 40.7355, longitude: -73.9572, reviewCount: 131
             ),
         ]
     }
