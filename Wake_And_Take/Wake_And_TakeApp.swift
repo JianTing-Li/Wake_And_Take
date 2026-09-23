@@ -6,12 +6,29 @@
 //
 
 import SwiftUI
+import UserNotifications
 
 @main
 struct Wake_And_TakeApp: App {
+    @State private var showSplash = true
+    private let notificationDelegate = NotificationDelegate()
+
+    init() {
+        UNUserNotificationCenter.current().delegate = notificationDelegate
+    }
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ZStack {
+                ContentView()
+                if showSplash {
+                    SplashView {
+                        withAnimation(.easeInOut(duration: 0.4)) { showSplash = false }
+                    }
+                    .transition(.opacity)
+                    .zIndex(1)
+                }
+            }
         }
     }
 }

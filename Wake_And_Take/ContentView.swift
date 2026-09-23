@@ -8,14 +8,28 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var store = BagStore()
+    @State private var selectedTab: AppTab = .discover
+
+    enum AppTab { case discover, orders, favorites, profile }
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        TabView(selection: $selectedTab) {
+            Tab("Discover", systemImage: "magnifyingglass", value: .discover) {
+                DiscoverView(store: store)
+            }
+            Tab("Orders", systemImage: "bag.fill", value: .orders) {
+                OrdersView(store: store) { selectedTab = .discover }
+            }
+            .badge(store.reservations.filter { $0.isActive(at: .now) }.count)
+            Tab("Favorites", systemImage: "heart.fill", value: .favorites) {
+                FavoritesView(store: store) { selectedTab = .discover }
+            }
+            Tab("Profile", systemImage: "person.crop.circle", value: .profile) {
+                ProfileView(store: store)
+            }
         }
-        .padding()
+        .tint(.splashTeal)
     }
 }
 
