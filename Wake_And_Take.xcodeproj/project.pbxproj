@@ -6,6 +6,14 @@
 	objectVersion = 110;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		6B7A00000000000000000020 /* Domain in Frameworks */ = {isa = PBXBuildFile; productRef = 6B7A00000000000000000010 /* Domain */; };
+		6B7A00000000000000000021 /* Platform in Frameworks */ = {isa = PBXBuildFile; productRef = 6B7A00000000000000000011 /* Platform */; };
+		6B7A00000000000000000022 /* MockData in Frameworks */ = {isa = PBXBuildFile; productRef = 6B7A00000000000000000012 /* MockData */; };
+		6B7A00000000000000000023 /* DesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = 6B7A00000000000000000013 /* DesignSystem */; };
+		6B7A00000000000000000024 /* CustomerFeatures in Frameworks */ = {isa = PBXBuildFile; productRef = 6B7A00000000000000000014 /* CustomerFeatures */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		6B61F3DF306441DF00D2CD39 /* Wake_And_Take.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Wake_And_Take.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -22,6 +30,11 @@
 		6B61F3DC306441DF00D2CD39 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				6B7A00000000000000000020 /* Domain in Frameworks */,
+				6B7A00000000000000000021 /* Platform in Frameworks */,
+				6B7A00000000000000000022 /* MockData in Frameworks */,
+				6B7A00000000000000000023 /* DesignSystem in Frameworks */,
+				6B7A00000000000000000024 /* CustomerFeatures in Frameworks */,
 			);
 		};
 /* End PBXFrameworksBuildPhase section */
@@ -60,6 +73,13 @@
 				6B61F3E1306441DF00D2CD39 /* Wake_And_Take */,
 			);
 			name = Wake_And_Take;
+			packageProductDependencies = (
+				6B7A00000000000000000010 /* Domain */,
+				6B7A00000000000000000011 /* Platform */,
+				6B7A00000000000000000012 /* MockData */,
+				6B7A00000000000000000013 /* DesignSystem */,
+				6B7A00000000000000000014 /* CustomerFeatures */,
+			);
 			productName = Wake_And_Take;
 			productReference = 6B61F3DF306441DF00D2CD39 /* Wake_And_Take.app */;
 			productType = "com.apple.product-type.application";
@@ -88,6 +108,9 @@
 			);
 			mainGroup = 6B61F3D6306441DF00D2CD39;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				6B7A00000000000000000001 /* XCLocalSwiftPackageReference "Packages/WakeAndTakeKit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 6B61F3E0306441DF00D2CD39 /* Products */;
 			projectDirPath = "";
@@ -325,6 +348,41 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		6B7A00000000000000000001 /* XCLocalSwiftPackageReference "Packages/WakeAndTakeKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/WakeAndTakeKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		6B7A00000000000000000010 /* Domain */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6B7A00000000000000000001 /* XCLocalSwiftPackageReference "Packages/WakeAndTakeKit" */;
+			productName = Domain;
+		};
+		6B7A00000000000000000011 /* Platform */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6B7A00000000000000000001 /* XCLocalSwiftPackageReference "Packages/WakeAndTakeKit" */;
+			productName = Platform;
+		};
+		6B7A00000000000000000012 /* MockData */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6B7A00000000000000000001 /* XCLocalSwiftPackageReference "Packages/WakeAndTakeKit" */;
+			productName = MockData;
+		};
+		6B7A00000000000000000013 /* DesignSystem */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6B7A00000000000000000001 /* XCLocalSwiftPackageReference "Packages/WakeAndTakeKit" */;
+			productName = DesignSystem;
+		};
+		6B7A00000000000000000014 /* CustomerFeatures */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6B7A00000000000000000001 /* XCLocalSwiftPackageReference "Packages/WakeAndTakeKit" */;
+			productName = CustomerFeatures;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 6B61F3D7306441DF00D2CD39 /* Project object */;
 	validationLevel = 1;

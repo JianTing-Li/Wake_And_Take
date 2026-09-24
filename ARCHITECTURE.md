@@ -176,7 +176,22 @@ A compile-time `FeatureFlags` value is created in `AppDependencies` and injected
 
 ---
 
-## 7. How to add a feature
+## 7. Running tests
+
+The package is iOS-only, so run its tests on a simulator (not `swift test`):
+
+```sh
+cd Packages/WakeAndTakeKit
+xcodebuild test -scheme WakeAndTakeKit-Package -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.5'
+```
+
+In Xcode, open `Packages/WakeAndTakeKit/Package.swift` (or the app project) and run the
+`WakeAndTakeKit-Package` scheme's tests. Rule tests use a fixed New York calendar
+(`Tests/DomainTests/Fixtures.swift`) with Thu Sep 24, 2026 as "today".
+
+---
+
+## 8. How to add a feature
 
 1. **Model and rules** — add or extend types in `Domain/Models` and pure logic in `Domain/Rules` (taking
    `now` as a parameter). Write Swift Testing tests in `DomainTests` with a fixed New York calendar.
