@@ -182,18 +182,27 @@ A compile-time `FeatureFlags` value is created in `AppDependencies` and injected
 
 ---
 
-## 7. Running tests
+## 7. Running tests & debug tools
 
-The package is iOS-only, so run its tests on a simulator (not `swift test`):
+Everything runs from the shared **Wake_And_Take** scheme (⌘U in Xcode): the five package test targets
+(Swift Testing) plus the `WakeAndTakeUITests` happy-path UI test (XCTest).
 
 ```sh
-cd Packages/WakeAndTakeKit
-xcodebuild test -scheme WakeAndTakeKit-Package -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.5'
+xcodebuild test -project Wake_And_Take.xcodeproj -scheme Wake_And_Take \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.5'
 ```
 
-In Xcode, open `Packages/WakeAndTakeKit/Package.swift` (or the app project) and run the
-`WakeAndTakeKit-Package` scheme's tests. Rule tests use a fixed New York calendar
-(`Tests/DomainTests/Fixtures.swift`) with Thu Sep 24, 2026 as "today".
+Package tests alone (faster): `cd Packages/WakeAndTakeKit && xcodebuild test -scheme WakeAndTakeKit-Package
+-destination '…'`. Rule tests use a fixed New York calendar with Thu Sep 24, 2026 as "today".
+
+**DEBUG tools** (Profile → Developer):
+
+- **Time travel** jumps the app clock (`AdjustableClock`) to 7:45 AM, 12:30 PM, 8:15 PM, 11:50 PM, or the next
+  day, and back to live. Moving the clock triggers rollover, so crossing 8 PM or midnight behaves as in real time.
+- **Seed map** shows every seed restaurant with the 1.5 mi service area; any outside it are listed in red.
+
+**DEBUG launch arguments** (used by the UI test): `-UITestInMemoryStore`, `-UITestNow <ISO 8601>` (freezes
+the clock), `-UITestFixedLocation` (LIC center, no permission prompt), `-UITestSkipSplash`.
 
 ---
 

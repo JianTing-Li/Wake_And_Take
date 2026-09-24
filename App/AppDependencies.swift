@@ -13,6 +13,7 @@ import MockData
 import OSLog
 import Platform
 import SwiftData
+import SwiftUI
 
 @MainActor
 final class AppDependencies {
@@ -46,7 +47,8 @@ final class AppDependencies {
     init() {
         flags = .default
         #if DEBUG
-            debugClock = AdjustableClock()
+            let options = LaunchOptions.current
+            debugClock = options.fixedNow.map(AdjustableClock.init(fixedAt:)) ?? AdjustableClock()
             clock = debugClock
         #else
             clock = LiveClock()
@@ -56,28 +58,60 @@ final class AppDependencies {
         let container: ModelContainer
         do {
             seed = try SeedLoader.loadBundled()
-            container = try ModelContainerFactory.makePersistent()
+            #if DEBUG
+                container =
+                    options.inMemoryStore
+                    ? try ModelContainerFactory.makeInMemory() : try ModelContainerFactory.makePersistent()
+            #else
+                container = try ModelContainerFactory.makePersistent()
+            #endif
         } catch {
             fatalError("Wake&Take can't start without its seed data and store: \(error)")
         }
 
         marketplace = MarketplaceStore(modelContainer: container, seed: seed)
         userData = UserDataStore(modelContainer: container)
-        location = DeviceLocationProvider(source: CoreLocationSource())
+        #if DEBUG
+            location =
+                options.fixedLocation
+                ? FixedLocationProvider() : DeviceLocationProvider(source: CoreLocationSource())
+        #else
+            location = DeviceLocationProvider(source: CoreLocationSource())
+        #endif
         notifications = LiveNotificationScheduler()
         rollover = RolloverService(
             marketplace: marketplace, userData: userData, notifications: notifications, clock: clock,
             alertsEnabled: flags.alertsEnabled)
         resetter = DemoDataResetter(
             marketplace: marketplace, userData: userData, notifications: notifications, clock: clock)
+        #if DEBUG
+            let developerDestination = Self.developerTools(clock: debugClock, offers: marketplace)
+        #else
+            let developerDestination: ((ProfileRoute) -> AnyView)? = nil
+        #endif
         screens = CustomerScreens(
             dependencies: CustomerDependencies(
                 offers: marketplace, reservations: marketplace, reviews: marketplace, favorites: userData,
                 preferences: userData, location: location, notifications: notifications, resetter: resetter,
                 clock: clock,
                 flags: flags),
-            navigation: navigation)
+            navigation: navigation,
+            developerDestination: developerDestination)
     }
+
+    #if DEBUG
+        /// Profile's Developer section: debug builds only.
+        private static func developerTools(
+            clock: AdjustableClock, offers: any OfferRepository
+        ) -> (ProfileRoute) -> AnyView {
+            { route in
+                switch route {
+                case .timeTravel: AnyView(TimeTravelView(clock: clock))
+                case .seedMap: AnyView(SeedMapView(offers: offers))
+                }
+            }
+        }
+    #endif
 
     /// Rolls the marketplace over if the New York day (or seed) changed. Safe to call often.
     func runRollover(reason: String) async {

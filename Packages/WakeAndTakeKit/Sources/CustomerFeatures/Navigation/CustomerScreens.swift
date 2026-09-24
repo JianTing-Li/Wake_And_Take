@@ -17,10 +17,18 @@ public final class CustomerScreens {
     public let favorites: FavoritesModel
     public let profile: ProfileModel
     private let dependencies: CustomerDependencies
+    private let developerDestination: ((ProfileRoute) -> AnyView)?
 
-    public init(dependencies: CustomerDependencies, navigation: CustomerNavigation) {
+    /// - Parameter developerDestination: DEBUG tools (time travel, seed map) the app supplies;
+    ///   nil hides Profile's Developer section.
+    public init(
+        dependencies: CustomerDependencies,
+        navigation: CustomerNavigation,
+        developerDestination: ((ProfileRoute) -> AnyView)? = nil
+    ) {
         self.dependencies = dependencies
         self.navigation = navigation
+        self.developerDestination = developerDestination
         discover = DiscoverModel(dependencies: dependencies)
         orders = OrdersModel(dependencies: dependencies)
         favorites = FavoritesModel(dependencies: dependencies)
@@ -41,7 +49,7 @@ public final class CustomerScreens {
     }
 
     public func profileTab() -> some View {
-        ProfileView(model: profile, navigation: navigation)
+        ProfileView(model: profile, navigation: navigation, developerDestination: developerDestination)
     }
 
     public func favoritesTab() -> some View {

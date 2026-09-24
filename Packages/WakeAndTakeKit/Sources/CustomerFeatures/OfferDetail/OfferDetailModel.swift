@@ -43,6 +43,8 @@ public final class OfferDetailModel {
     }
 
     public var flags: FeatureFlags { dependencies.flags }
+    /// Heart in the toolbar (favorites flag).
+    public var showsFavoriteButton: Bool { flags.favorites }
     private var calendar: Calendar { NYCalendar.calendar }
 
     // MARK: - Lifecycle

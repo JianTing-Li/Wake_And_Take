@@ -32,7 +32,9 @@ struct ReservationConfirmationView: View {
                         .font(.pickupCode(size: 44))
                         .tracking(8)
                         .accessibilityLabel(
-                            "Pickup code \(confirmation.code.map(String.init).joined(separator: " "))")
+                            "Pickup code \(confirmation.code.map(String.init).joined(separator: " "))"
+                        )
+                        .accessibilityIdentifier("confirmation.code")
                     QRCodeView(text: confirmation.code, size: 140)
                 }
                 .padding(.vertical, Spacing.m).padding(.horizontal, Spacing.xxl)
@@ -62,6 +64,7 @@ struct ReservationConfirmationView: View {
                     Text("View order").font(.headline).frame(maxWidth: .infinity).padding(.vertical, 6)
                 }
                 .buttonStyle(.borderedProminent)
+                .accessibilityIdentifier("confirmation.viewOrder")
                 Button {
                     dismiss()
                 } label: {

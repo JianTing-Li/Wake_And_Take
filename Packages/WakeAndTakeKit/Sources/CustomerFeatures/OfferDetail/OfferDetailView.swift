@@ -36,7 +36,7 @@ public struct OfferDetailView: View {
         .navigationTitle(model.restaurantName)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if model.flags.favorites, model.state == .loaded {
+            if model.showsFavoriteButton, model.state == .loaded {
                 Button {
                     Task { await model.toggleFavorite() }
                 } label: {
@@ -151,6 +151,7 @@ public struct OfferDetailView: View {
             .buttonStyle(.borderedProminent)
             .tint(.splashTeal)
             .disabled(!model.canReserve || reserve.isReserving)
+            .accessibilityIdentifier("offerDetail.reserve")
         }
         .padding(Spacing.l)
         .background(.bar)

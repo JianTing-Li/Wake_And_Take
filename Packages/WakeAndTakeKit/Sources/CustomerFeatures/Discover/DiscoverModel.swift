@@ -42,6 +42,10 @@ public final class DiscoverModel {
     }
 
     public var flags: FeatureFlags { dependencies.flags }
+    /// Map/list toggle in the toolbar (mapBrowse flag).
+    public var showsMapToggle: Bool { flags.mapBrowse }
+    /// Hearts on cards (favorites flag).
+    public var showsFavoriteButtons: Bool { flags.favorites }
 
     // MARK: - Lifecycle
 

@@ -43,7 +43,7 @@ public struct OrdersView<Destination: View>: View {
             ) { Task { await model.retry() } }
         case .loaded, .empty:
             List {
-                if model.flags.impact {
+                if model.showsImpact {
                     Section {
                         ImpactCard(impact: model.impact)
                     }

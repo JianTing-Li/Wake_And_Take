@@ -17,7 +17,7 @@ import UIKit
 struct AppRoot: View {
     let dependencies: AppDependencies
 
-    @State private var showSplash = true
+    @State private var showSplash = AppRoot.showsSplashOnLaunch
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -54,5 +54,13 @@ struct AppRoot: View {
             guard phase == .active else { return }
             Task { await dependencies.runRollover(reason: "became active") }
         }
+    }
+
+    private static var showsSplashOnLaunch: Bool {
+        #if DEBUG
+            !LaunchOptions.current.skipSplash
+        #else
+            true
+        #endif
     }
 }

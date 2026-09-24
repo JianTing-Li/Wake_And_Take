@@ -37,7 +37,7 @@ public struct DiscoverView<Destination: View>: View {
             .navigationTitle(model.mode == .map ? "Map" : "Discover")
             .navigationBarTitleDisplayMode(model.mode == .map ? .inline : .automatic)
             .toolbar {
-                if model.flags.mapBrowse {
+                if model.showsMapToggle {
                     Button {
                         withAnimation { model.mode = model.mode == .list ? .map : .list }
                     } label: {
@@ -108,11 +108,12 @@ public struct DiscoverView<Destination: View>: View {
                     NavigationLink(value: DiscoverRoute.offer(id: item.offerID)) {
                         BagCard(
                             item.card, isFavorite: item.isFavorite,
-                            onToggleFavorite: model.flags.favorites
+                            onToggleFavorite: model.showsFavoriteButtons
                                 ? { Task { await model.toggleFavorite(restaurantID: item.restaurantID) } } : nil
                         )
                     }
                     .buttonStyle(.plain)
+                    .accessibilityIdentifier("discover.bagCard")
                 }
             }
         }

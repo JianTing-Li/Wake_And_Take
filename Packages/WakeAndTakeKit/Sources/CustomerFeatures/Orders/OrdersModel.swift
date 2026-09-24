@@ -38,6 +38,8 @@ public final class OrdersModel {
     }
 
     public var flags: FeatureFlags { dependencies.flags }
+    /// Impact card at the top (impact flag).
+    public var showsImpact: Bool { flags.impact }
 
     // MARK: - Lifecycle
 

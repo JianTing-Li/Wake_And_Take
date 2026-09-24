@@ -50,6 +50,10 @@ public final class ProfileModel {
     }
 
     public var flags: FeatureFlags { dependencies.flags }
+    public var showsImpact: Bool { flags.impact }
+    public var showsDietary: Bool { flags.dietaryFilters }
+    /// "Morning commute" section (commute flag, off by default).
+    public var showsCommute: Bool { flags.commute }
 
     // MARK: - Lifecycle
 

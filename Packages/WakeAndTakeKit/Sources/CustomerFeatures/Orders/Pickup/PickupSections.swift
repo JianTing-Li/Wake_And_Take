@@ -19,6 +19,7 @@ struct PickupCodeCard: View {
                 .font(.pickupCode(size: 48))
                 .tracking(10)
                 .accessibilityLabel("Pickup code \(code.map(String.init).joined(separator: " "))")
+                .accessibilityIdentifier("pickup.code")
             QRCodeView(text: code, size: 150)
             Text("Show this to staff at the counter")
                 .font(.footnote)

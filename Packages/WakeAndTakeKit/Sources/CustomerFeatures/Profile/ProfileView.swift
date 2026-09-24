@@ -11,10 +11,15 @@ import SwiftUI
 public struct ProfileView: View {
     @Bindable var model: ProfileModel
     @Bindable var navigation: CustomerNavigation
+    let developerDestination: ((ProfileRoute) -> AnyView)?
 
-    public init(model: ProfileModel, navigation: CustomerNavigation) {
+    public init(
+        model: ProfileModel, navigation: CustomerNavigation,
+        developerDestination: ((ProfileRoute) -> AnyView)? = nil
+    ) {
         self.model = model
         self.navigation = navigation
+        self.developerDestination = developerDestination
     }
 
     public var body: some View {
@@ -31,6 +36,9 @@ public struct ProfileView: View {
                 }
             }
             .navigationTitle("Profile")
+            .navigationDestination(for: ProfileRoute.self) { route in
+                developerDestination?(route) ?? AnyView(EmptyView())
+            }
         }
         .tint(.splashTeal)
         .task { await model.run() }
@@ -38,7 +46,7 @@ public struct ProfileView: View {
 
     private var form: some View {
         Form {
-            if model.flags.impact {
+            if model.showsImpact {
                 Section {
                     ImpactCard(impact: model.impact)
                         .listRowInsets(EdgeInsets())
@@ -67,9 +75,10 @@ public struct ProfileView: View {
                 Text("Discover hides bags farther than this from you.")
             }
 
-            if model.flags.dietaryFilters { dietarySection }
-            if model.flags.commute { CommuteSection(model: model) }
+            if model.showsDietary { dietarySection }
+            if model.showsCommute { CommuteSection(model: model) }
             resetSection
+            if developerDestination != nil { developerSection }
         }
     }
 
@@ -90,6 +99,22 @@ public struct ProfileView: View {
             Text(
                 "Discover only shows bags that fit every preference you turn on. "
                     + "Surprise bags vary, so check with the store if you have an allergy.")
+        }
+    }
+
+    /// DEBUG only: the app passes these tools in debug builds.
+    private var developerSection: some View {
+        Section {
+            NavigationLink(value: ProfileRoute.timeTravel) {
+                Label("Time travel", systemImage: "clock.arrow.2.circlepath")
+            }
+            NavigationLink(value: ProfileRoute.seedMap) {
+                Label("Seed map", systemImage: "map")
+            }
+        } header: {
+            Text("Developer")
+        } footer: {
+            Text("Debug builds only.")
         }
     }
 
