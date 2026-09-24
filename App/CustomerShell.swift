@@ -22,7 +22,7 @@ struct CustomerShell: View {
         } orders: {
             screens.ordersTab()
         } favorites: {
-            FavoritesView(store: legacy) { navigation.selectedTab = .discover }
+            screens.favoritesTab()
         } profile: {
             ProfileView(store: legacy)
         }

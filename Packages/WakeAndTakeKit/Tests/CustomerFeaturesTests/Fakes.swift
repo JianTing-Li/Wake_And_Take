@@ -196,6 +196,22 @@ nonisolated final class FakeUserData: FavoritesRepository, PreferencesRepository
     func changes() -> AsyncStream<UserDataChange> { broadcaster.stream() }
 }
 
+/// Scripted permission answer; records previews.
+nonisolated final class FakeNotifications: NotificationScheduler, Sendable {
+    private let granted = Mutex(true)
+    private let previews = Mutex<[String]>([])
+
+    func setPermission(_ allowed: Bool) { granted.withLock { $0 = allowed } }
+    var previewOfferIDs: [String] { previews.withLock { $0 } }
+
+    func requestPermission() async -> Bool { granted.withLock { $0 } }
+    func schedule(_ alerts: [OfferAlert], now: Date) async {}
+    func replaceAll(with alerts: [OfferAlert], now: Date) async {}
+    func cancel(offerIDs: [String]) async {}
+    func cancelAll() async {}
+    func sendPreview(_ alert: OfferAlert) async { previews.withLock { $0.append(alert.offerID) } }
+}
+
 nonisolated struct FakeLocation: LocationProvider {
     var result: ResolvedLocation
     func resolve() async -> ResolvedLocation { result }
@@ -268,6 +284,7 @@ struct Harness {
     let marketplace: FakeMarketplace
     let userData: FakeUserData
     let clock: AdjustableClock
+    let notifications = FakeNotifications()
     let dependencies: CustomerDependencies
 
     init(
@@ -283,7 +300,8 @@ struct Harness {
         clock = AdjustableClock(fixedAt: now)
         dependencies = CustomerDependencies(
             offers: marketplace, reservations: marketplace, reviews: marketplace, favorites: userData,
-            preferences: userData, location: FakeLocation(result: location), clock: clock, flags: flags)
+            preferences: userData, location: FakeLocation(result: location), notifications: notifications,
+            clock: clock, flags: flags)
     }
 }
 

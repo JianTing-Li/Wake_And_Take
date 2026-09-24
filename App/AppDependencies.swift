@@ -69,13 +69,15 @@ final class AppDependencies {
         location = DeviceLocationProvider(source: CoreLocationSource())
         notifications = LiveNotificationScheduler()
         rollover = RolloverService(
-            marketplace: marketplace, userData: userData, notifications: notifications, clock: clock)
+            marketplace: marketplace, userData: userData, notifications: notifications, clock: clock,
+            alertsEnabled: flags.alertsEnabled)
         resetter = DemoDataResetter(
             marketplace: marketplace, userData: userData, notifications: notifications, clock: clock)
         screens = CustomerScreens(
             dependencies: CustomerDependencies(
                 offers: marketplace, reservations: marketplace, reviews: marketplace, favorites: userData,
-                preferences: userData, location: location, clock: clock, flags: flags),
+                preferences: userData, location: location, notifications: notifications, clock: clock,
+                flags: flags),
             navigation: navigation)
     }
 

@@ -14,6 +14,7 @@ public struct CustomerDependencies: Sendable {
     public var favorites: any FavoritesRepository
     public var preferences: any PreferencesRepository
     public var location: any LocationProvider
+    public var notifications: any NotificationScheduler
     public var clock: any Clock
     public var flags: FeatureFlags
 
@@ -24,6 +25,7 @@ public struct CustomerDependencies: Sendable {
         favorites: any FavoritesRepository,
         preferences: any PreferencesRepository,
         location: any LocationProvider,
+        notifications: any NotificationScheduler,
         clock: any Clock,
         flags: FeatureFlags
     ) {
@@ -33,6 +35,7 @@ public struct CustomerDependencies: Sendable {
         self.favorites = favorites
         self.preferences = preferences
         self.location = location
+        self.notifications = notifications
         self.clock = clock
         self.flags = flags
     }

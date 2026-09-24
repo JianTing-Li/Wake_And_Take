@@ -9,6 +9,7 @@
 
 import CustomerFeatures
 import Domain
+import MockData
 import Platform
 import SwiftUI
 import UIKit
@@ -36,6 +37,7 @@ struct AppRoot: View {
         }
         .environment(\.featureFlags, dependencies.flags)
         .task { await dependencies.runRollover(reason: "launch") }
+        .task { await dependencies.rollover.syncAlerts() }
         .task {
             let changes = NotificationCenter.default.notifications(
                 named: UIApplication.significantTimeChangeNotification)

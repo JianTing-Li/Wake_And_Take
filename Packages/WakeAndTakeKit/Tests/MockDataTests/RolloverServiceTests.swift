@@ -58,6 +58,49 @@ struct RolloverServiceTests {
         #expect(spy.recorded == ["replaceAll", "replaceAll"])
     }
 
+    @Test func alertSyncFollowsStockAndFavorites() async throws {
+        let stores = try await TestEnv.makeStores(rolloverAt: TestEnv.sep(24, 18))
+        let clock = AdjustableClock(fixedAt: TestEnv.sep(24, 18))
+        let spy = SpyNotificationScheduler()
+        let rollover = service(stores, clock: clock, spy: spy)
+        let sync = Task { await rollover.syncAlerts() }
+        defer { sync.cancel() }
+        let dinnerToday = TestEnv.offerID("tpl_night_owl_dinner", day: 24)  // 5 total, 1 simulated
+
+        func waitFor(_ count: Int) async -> [String]? {
+            for _ in 0..<200 where spy.replacements.count < count { try? await Task.sleep(for: .milliseconds(10)) }
+            return spy.replacements.count >= count ? spy.replacements[count - 1] : nil
+        }
+
+        #expect(await waitFor(1) == [])  // initial sync: no alerts yet
+        try await stores.userData.setAlerts(true, restaurantID: "rst_night_owl_trattoria")
+        #expect(await waitFor(2)?.contains(dinnerToday) == true)
+
+        // Sold out → its alert goes away; cancel → restocked → it comes back.
+        let r = try await stores.marketplace.reserve(offerID: dinnerToday, quantity: 3, at: clock.now)
+        _ = try await stores.marketplace.reserve(offerID: dinnerToday, quantity: 1, at: clock.now)
+        for _ in 0..<200 where spy.replacements.last?.contains(dinnerToday) != false {
+            try? await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(spy.replacements.last?.contains(dinnerToday) == false)
+        _ = try await stores.marketplace.cancel(reservationID: r.id, reason: nil, at: clock.now)
+        for _ in 0..<200 where spy.replacements.last?.contains(dinnerToday) != true {
+            try? await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(spy.replacements.last?.contains(dinnerToday) == true)
+    }
+
+    @Test func notificationsFlagOffSchedulesNothing() async throws {
+        let stores = try await TestEnv.makeStores()
+        try await stores.userData.setAlerts(true, restaurantID: "rst_night_owl_trattoria")
+        let spy = SpyNotificationScheduler()
+        let rollover = RolloverService(
+            marketplace: stores.marketplace, userData: stores.userData, notifications: spy,
+            clock: AdjustableClock(fixedAt: TestEnv.sep(24, 8)), alertsEnabled: false)
+        try await rollover.run()
+        #expect(spy.replacements == [[]])
+    }
+
     @Test func offersNotYetOpenIgnoresVisibility() async throws {
         let stores = try await TestEnv.makeStores(rolloverAt: TestEnv.sep(24, 22))
         let upcoming = try await stores.marketplace.offersNotYetOpen(at: TestEnv.sep(24, 22))

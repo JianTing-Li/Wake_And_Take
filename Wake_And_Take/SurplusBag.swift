@@ -214,10 +214,6 @@ final class BagStore {
         alertStores = Set(defaults.stringArray(forKey: "alertStores") ?? [])
         profile = defaults.data(forKey: "profile")
             .flatMap { try? JSONDecoder().decode(CommuteProfile.self, from: $0) } ?? CommuteProfile()
-
-        // Listings change every launch, so rebuild pending alerts from scratch.
-        BagAlerts.cancelAll()
-        BagAlerts.schedule(bags.filter { alertStores.contains($0.store) })
     }
 
     func bag(id: SurplusBag.ID) -> SurplusBag? {

@@ -14,6 +14,7 @@ public final class CustomerScreens {
     public let discover: DiscoverModel
     /// Lives for the app's lifetime so the Orders badge stays current.
     public let orders: OrdersModel
+    public let favorites: FavoritesModel
     private let dependencies: CustomerDependencies
 
     public init(dependencies: CustomerDependencies, navigation: CustomerNavigation) {
@@ -21,6 +22,7 @@ public final class CustomerScreens {
         self.navigation = navigation
         discover = DiscoverModel(dependencies: dependencies)
         orders = OrdersModel(dependencies: dependencies)
+        favorites = FavoritesModel(dependencies: dependencies)
     }
 
     /// Work that runs while the app is open, independent of which tab is showing.
@@ -33,6 +35,14 @@ public final class CustomerScreens {
     public func discoverTab() -> some View {
         DiscoverView(model: discover, navigation: navigation) { [unowned self] route in
             destination(for: route)
+        }
+    }
+
+    public func favoritesTab() -> some View {
+        FavoritesView(model: favorites, navigation: navigation) { [unowned self] route in
+            switch route {
+            case .offer(let id): offerDetail(id)
+            }
         }
     }
 
