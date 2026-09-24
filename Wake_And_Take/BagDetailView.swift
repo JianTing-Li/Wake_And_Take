@@ -3,6 +3,7 @@
 //  Wake_And_Take
 //
 
+import DesignSystem
 import SwiftUI
 
 struct BagDetailView: View {

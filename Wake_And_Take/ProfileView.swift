@@ -6,6 +6,7 @@
 //  dietary preferences so Discover shows bags that fit their morning.
 //
 
+import DesignSystem
 import SwiftUI
 
 struct ProfileView: View {

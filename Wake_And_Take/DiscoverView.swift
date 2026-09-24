@@ -6,6 +6,7 @@
 //  and reserves it before the pickup window ends.
 //
 
+import DesignSystem
 import SwiftUI
 
 struct DiscoverView: View {

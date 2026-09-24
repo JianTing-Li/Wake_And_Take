@@ -6,6 +6,7 @@
 //  Ratings feed the store scores shown in Discover.
 //
 
+import DesignSystem
 import SwiftUI
 
 struct RateOrderView: View {

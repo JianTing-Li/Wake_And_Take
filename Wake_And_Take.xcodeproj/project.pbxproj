@@ -18,10 +18,28 @@
 		6B61F3DF306441DF00D2CD39 /* Wake_And_Take.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Wake_And_Take.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		6B7A00000000000000000031 /* Exceptions for "App" folder in "Wake_And_Take" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Resources/Info.plist,
+			);
+			target = 6B61F3DE306441DF00D2CD39 /* Wake_And_Take */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		6B61F3E1306441DF00D2CD39 /* Wake_And_Take */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Wake_And_Take;
+			sourceTree = "<group>";
+		};
+		6B7A00000000000000000030 /* App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				6B7A00000000000000000031 /* Exceptions for "App" folder in "Wake_And_Take" target */,
+			);
+			path = App;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -43,6 +61,7 @@
 		6B61F3D6306441DF00D2CD39 = {
 			isa = PBXGroup;
 			children = (
+				6B7A00000000000000000030 /* App */,
 				6B61F3E1306441DF00D2CD39 /* Wake_And_Take */,
 				6B61F3E0306441DF00D2CD39 /* Products */,
 			);
@@ -71,6 +90,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				6B61F3E1306441DF00D2CD39 /* Wake_And_Take */,
+				6B7A00000000000000000030 /* App */,
 			);
 			name = Wake_And_Take;
 			packageProductDependencies = (
@@ -264,7 +284,7 @@
 				DEVELOPMENT_TEAM = F779NR5ZAF;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "Wake_And_Take-Info.plist";
+				INFOPLIST_FILE = App/Resources/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -301,7 +321,7 @@
 				DEVELOPMENT_TEAM = F779NR5ZAF;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "Wake_And_Take-Info.plist";
+				INFOPLIST_FILE = App/Resources/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;

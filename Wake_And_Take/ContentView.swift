@@ -5,6 +5,7 @@
 //  Created by Jian Ting Li on 9/23/26.
 //
 
+import DesignSystem
 import SwiftUI
 
 struct ContentView: View {

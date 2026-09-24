@@ -6,6 +6,7 @@
 //  when they have bags, so they never miss a deal on their commute.
 //
 
+import DesignSystem
 import SwiftUI
 
 struct FavoritesView: View {

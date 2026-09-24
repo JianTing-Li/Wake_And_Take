@@ -54,6 +54,15 @@ public actor MarketplaceStore: ModelActor {
             .filter { OfferVisibility.isVisible($0, at: now, calendar: calendar) }
     }
 
+    /// Every stored offer that hasn't opened yet, regardless of visibility (for scheduling alerts).
+    public func offersNotYetOpen(at now: Date) throws -> [Offer] {
+        let descriptor = FetchDescriptor<OfferEntity>(
+            predicate: #Predicate { $0.pickupStart > now },
+            sortBy: [SortDescriptor(\.pickupStart), SortDescriptor(\.id)]
+        )
+        return try modelContext.fetch(descriptor).map(\.domain)
+    }
+
     public func offer(id: String) throws -> Offer? {
         try offerEntity(id: id)?.domain
     }

@@ -1,8 +1,9 @@
 //
 //  SplashView.swift
-//  Wake_And_Take
+//  WakeAndTake
 //
 
+import DesignSystem
 import SwiftUI
 
 /// Launch splash: a cream egg on deep teal wobbles, cracks open,
@@ -46,10 +47,10 @@ struct SplashView: View {
 
                 VStack(spacing: 8) {
                     Text("Wake & Take")
-                        .font(.system(size: 40, weight: .heavy, design: .rounded))
+                        .font(.brand(size: 40, weight: .heavy))
                         .foregroundStyle(Color.shellCream)
                     Text("Rescue breakfast on your way")
-                        .font(.system(size: 17, weight: .semibold, design: .rounded))
+                        .font(.brand(size: 17, weight: .semibold))
                         .foregroundStyle(Color.yolk)
                 }
                 .opacity(phase >= .title ? 1 : 0)
@@ -231,14 +232,6 @@ nonisolated struct ShellHalf: Shape {
         p.closeSubpath()
         return p
     }
-}
-
-// MARK: - Colors
-
-extension Color {
-    static let splashTeal = Color(.launchBackground)  // matches the launch screen
-    static let shellCream = Color(red: 1.0, green: 0.97, blue: 0.9)
-    static let yolk = Color(red: 1.0, green: 0.72, blue: 0.1)
 }
 
 #Preview {

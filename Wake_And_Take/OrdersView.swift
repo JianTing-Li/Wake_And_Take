@@ -6,6 +6,7 @@
 //  knows when and where to go, shows their code, and confirms pickup.
 //
 
+import DesignSystem
 import SwiftUI
 
 struct OrdersView: View {

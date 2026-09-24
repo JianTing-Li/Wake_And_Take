@@ -72,12 +72,18 @@ final class SequentialCodes: PickupCodeGenerator {
 /// Records what the resetter asks of notifications.
 final class SpyNotificationScheduler: NotificationScheduler {
     private let calls = Mutex<[String]>([])
+    private let replaced = Mutex<[[String]]>([])
 
     var recorded: [String] { calls.withLock { $0 } }
+    /// Offer IDs passed to each `replaceAll`.
+    var replacements: [[String]] { replaced.withLock { $0 } }
 
     func requestPermission() async -> Bool { true }
     func schedule(_ alerts: [OfferAlert], now: Date) async { calls.withLock { $0.append("schedule") } }
-    func replaceAll(with alerts: [OfferAlert], now: Date) async { calls.withLock { $0.append("replaceAll") } }
+    func replaceAll(with alerts: [OfferAlert], now: Date) async {
+        calls.withLock { $0.append("replaceAll") }
+        replaced.withLock { $0.append(alerts.map(\.offerID)) }
+    }
     func cancel(offerIDs: [String]) async { calls.withLock { $0.append("cancel") } }
     func cancelAll() async { calls.withLock { $0.append("cancelAll") } }
     func sendPreview(_ alert: OfferAlert) async { calls.withLock { $0.append("preview") } }

@@ -79,6 +79,22 @@ public enum NotificationPlan {
         alerts.filter { $0.pickupWindow.start > now }
     }
 
+    /// Which offers should have a pending alert: from favorites with alerts on,
+    /// in stock, and not open yet.
+    public static func alerts(
+        for favorites: [FavoriteRestaurant],
+        offers: [Offer],
+        restaurants: [Restaurant],
+        now: Date
+    ) -> [OfferAlert] {
+        let alerting = Set(favorites.filter(\.alertsEnabled).map(\.restaurantID))
+        let names = Dictionary(uniqueKeysWithValues: restaurants.map { ($0.id, $0.name) })
+        return
+            offers
+            .filter { alerting.contains($0.restaurantID) && !$0.isSoldOut && $0.pickupWindow.start > now }
+            .compactMap { offer in names[offer.restaurantID].map { OfferAlert(offer: offer, restaurantName: $0) } }
+    }
+
     public static func title(for alert: OfferAlert) -> String {
         "\(alert.restaurantName) has bags ready"
     }
