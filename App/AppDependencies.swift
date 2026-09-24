@@ -41,9 +41,6 @@ final class AppDependencies {
     var favorites: any FavoritesRepository { userData }
     var preferences: any PreferencesRepository { userData }
 
-    /// Legacy draft store backing tabs that haven't been ported yet (removed in Phase 4g/6).
-    let legacyStore = BagStore()
-
     private static let log = Logger(subsystem: "org.pursuit.Wake-And-Take", category: "App")
 
     init() {
@@ -76,7 +73,8 @@ final class AppDependencies {
         screens = CustomerScreens(
             dependencies: CustomerDependencies(
                 offers: marketplace, reservations: marketplace, reviews: marketplace, favorites: userData,
-                preferences: userData, location: location, notifications: notifications, clock: clock,
+                preferences: userData, location: location, notifications: notifications, resetter: resetter,
+                clock: clock,
                 flags: flags),
             navigation: navigation)
     }

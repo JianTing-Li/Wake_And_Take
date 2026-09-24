@@ -6,9 +6,9 @@ day, especially breakfast. This build covers the **customer side** only. All dat
 (no backend), but the mock layer behaves like a real marketplace: shared stock, atomic reservations,
 pickup windows that open and close, and persistence across launches.
 
-> Status: the refactor is happening in phases on the `app-refactor` branch. The app now launches through
-> the new shell (`App/`: `AppDependencies` → `AppRoot` → `CustomerTabView`). Tabs not yet ported still host
-> their legacy draft views from `Wake_And_Take/`, which Phase 6 deletes.
+> Status: the refactor is happening in phases on the `app-refactor` branch. The app runs entirely on the
+> new stack (`App/`: `AppDependencies` → `AppRoot` → `CustomerTabView` → `CustomerScreens`). The legacy draft
+> files in `Wake_And_Take/` still compile but are no longer used; Phase 6 deletes them.
 
 ---
 

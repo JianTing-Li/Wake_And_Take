@@ -15,6 +15,7 @@ public final class CustomerScreens {
     /// Lives for the app's lifetime so the Orders badge stays current.
     public let orders: OrdersModel
     public let favorites: FavoritesModel
+    public let profile: ProfileModel
     private let dependencies: CustomerDependencies
 
     public init(dependencies: CustomerDependencies, navigation: CustomerNavigation) {
@@ -23,6 +24,7 @@ public final class CustomerScreens {
         discover = DiscoverModel(dependencies: dependencies)
         orders = OrdersModel(dependencies: dependencies)
         favorites = FavoritesModel(dependencies: dependencies)
+        profile = ProfileModel(dependencies: dependencies, navigation: navigation)
     }
 
     /// Work that runs while the app is open, independent of which tab is showing.
@@ -36,6 +38,10 @@ public final class CustomerScreens {
         DiscoverView(model: discover, navigation: navigation) { [unowned self] route in
             destination(for: route)
         }
+    }
+
+    public func profileTab() -> some View {
+        ProfileView(model: profile, navigation: navigation)
     }
 
     public func favoritesTab() -> some View {
@@ -58,8 +64,10 @@ public final class CustomerScreens {
         case .pickup(let id):
             PickupView(
                 model: PickupModel(reservationID: id, origin: discover.origin, dependencies: dependencies)
-            ) { request in
-                RateOrderPlaceholderView(request: request)
+            ) { [dependencies] request in
+                RateOrderView(
+                    model: RateOrderModel(
+                        reservationID: request.reservationID, initialStars: request.stars, dependencies: dependencies))
             }
         case .manageOrder(let id):
             ManageOrderView(model: ManageOrderModel(reservationID: id, dependencies: dependencies))

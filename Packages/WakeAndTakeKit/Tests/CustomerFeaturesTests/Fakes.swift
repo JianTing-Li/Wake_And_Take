@@ -147,7 +147,28 @@ nonisolated final class FakeMarketplace: OfferRepository, ReservationRepository,
 
     // ReviewRepository
     func submitReview(_ review: Review, for reservationID: UUID, at now: Date) async throws -> Restaurant? {
-        throw TestError()
+        let restaurant = try state.withLock { s -> Restaurant? in
+            guard let index = s.reservations.firstIndex(where: { $0.id == reservationID }) else {
+                throw ReviewError.notEligible
+            }
+            try ReviewPolicy.validate(review, for: s.reservations[index], at: now)
+            s.reservations[index].review = review
+            guard let r = s.restaurants.firstIndex(where: { $0.id == s.reservations[index].snapshot.restaurantID })
+            else { return nil }
+            let folded = ReviewPolicy.foldedRating(
+                rating: s.restaurants[r].rating, reviewCount: s.restaurants[r].reviewCount, adding: review.overall)
+            s.restaurants[r].rating = folded.rating
+            s.restaurants[r].reviewCount = folded.reviewCount
+            return s.restaurants[r]
+        }
+        broadcaster.send(.reservationsChanged)
+        return restaurant
+    }
+
+    /// Clears reservations (what a reset does to the marketplace, for these tests).
+    func clearReservations() {
+        state.withLock { $0.reservations = [] }
+        broadcaster.send(.reset)
     }
 }
 
@@ -194,6 +215,11 @@ nonisolated final class FakeUserData: FavoritesRepository, PreferencesRepository
         broadcaster.send(.commuteChanged)
     }
     func changes() -> AsyncStream<UserDataChange> { broadcaster.stream() }
+
+    func wipe() {
+        state.withLock { $0 = State() }
+        broadcaster.send(.reset)
+    }
 }
 
 /// Scripted permission answer; records previews.
@@ -210,6 +236,34 @@ nonisolated final class FakeNotifications: NotificationScheduler, Sendable {
     func cancel(offerIDs: [String]) async {}
     func cancelAll() async {}
     func sendPreview(_ alert: OfferAlert) async { previews.withLock { $0.append(alert.offerID) } }
+}
+
+/// Wipes the fakes the way DemoDataResetter wipes the stores.
+nonisolated final class FakeResetter: DemoDataResetting, Sendable {
+    private let calls = Mutex(0)
+    private let fail = Mutex(false)
+    let marketplace: FakeMarketplace
+    let userData: FakeUserData
+
+    init(marketplace: FakeMarketplace, userData: FakeUserData) {
+        self.marketplace = marketplace
+        self.userData = userData
+    }
+
+    var resetCount: Int { calls.withLock { $0 } }
+    func failNext() { fail.withLock { $0 = true } }
+
+    func resetAll() async throws {
+        if fail.withLock({ f in
+            defer { f = false }
+            return f
+        }) {
+            throw TestError()
+        }
+        calls.withLock { $0 += 1 }
+        marketplace.clearReservations()
+        userData.wipe()
+    }
 }
 
 nonisolated struct FakeLocation: LocationProvider {
@@ -285,6 +339,7 @@ struct Harness {
     let userData: FakeUserData
     let clock: AdjustableClock
     let notifications = FakeNotifications()
+    let resetter: FakeResetter
     let dependencies: CustomerDependencies
 
     init(
@@ -298,10 +353,11 @@ struct Harness {
         marketplace = FakeMarketplace(offers: offers)
         userData = FakeUserData(preferences: preferences, favorites: favorites)
         clock = AdjustableClock(fixedAt: now)
+        resetter = FakeResetter(marketplace: marketplace, userData: userData)
         dependencies = CustomerDependencies(
             offers: marketplace, reservations: marketplace, reviews: marketplace, favorites: userData,
             preferences: userData, location: FakeLocation(result: location), notifications: notifications,
-            clock: clock, flags: flags)
+            resetter: resetter, clock: clock, flags: flags)
     }
 }
 
