@@ -32,6 +32,7 @@ final class AppDependencies {
     let rollover: RolloverService
     let resetter: any DemoDataResetting
     let navigation = CustomerNavigation()
+    let screens: CustomerScreens
 
     // Repositories, as the protocols features depend on.
     var offers: any OfferRepository { marketplace }
@@ -71,6 +72,11 @@ final class AppDependencies {
             marketplace: marketplace, userData: userData, notifications: notifications, clock: clock)
         resetter = DemoDataResetter(
             marketplace: marketplace, userData: userData, notifications: notifications, clock: clock)
+        screens = CustomerScreens(
+            dependencies: CustomerDependencies(
+                offers: marketplace, reservations: marketplace, reviews: marketplace, favorites: userData,
+                preferences: userData, location: location, clock: clock, flags: flags),
+            navigation: navigation)
     }
 
     /// Rolls the marketplace over if the New York day (or seed) changed. Safe to call often.

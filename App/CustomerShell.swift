@@ -18,7 +18,7 @@ struct CustomerShell: View {
         let legacy = dependencies.legacyStore
 
         CustomerTabView(navigation: navigation, ordersBadge: legacyActiveOrders) {
-            DiscoverView(store: legacy)
+            dependencies.screens.discoverTab()
         } orders: {
             OrdersView(store: legacy) { navigation.selectedTab = .discover }
         } favorites: {
