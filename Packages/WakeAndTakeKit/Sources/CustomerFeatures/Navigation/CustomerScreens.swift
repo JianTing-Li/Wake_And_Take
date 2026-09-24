@@ -26,11 +26,17 @@ public final class CustomerScreens {
         }
     }
 
+    private func offerDetail(_ id: String) -> some View {
+        OfferDetailView(
+            model: OfferDetailModel(
+                offerID: id, origin: discover.origin, dependencies: dependencies, navigation: navigation))
+    }
+
     @ViewBuilder
     private func destination(for route: DiscoverRoute) -> some View {
         switch route {
         case .offer(let id):
-            OfferDetailPlaceholderView(offerID: id)
+            offerDetail(id)
         }
     }
 }

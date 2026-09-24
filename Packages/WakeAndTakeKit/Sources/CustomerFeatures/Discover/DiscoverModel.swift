@@ -122,6 +122,9 @@ public final class DiscoverModel {
 
     // MARK: - Output
 
+    /// Where distances are measured from right now.
+    public var origin: ResolvedLocation { catalog.origin }
+
     /// Why distances come from LIC instead of the device, if they do.
     public var fallbackReason: ResolvedLocation.FallbackReason? {
         if case .fallback(let reason) = catalog.location?.source { reason } else { nil }

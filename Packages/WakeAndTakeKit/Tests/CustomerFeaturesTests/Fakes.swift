@@ -21,6 +21,8 @@ nonisolated final class FakeMarketplace: OfferRepository, ReservationRepository,
         var restaurants: [Restaurant] = []
         var reservations: [Reservation] = []
         var failReads = false
+        var nextReserveError: (any Error)?
+        var codes = 0
     }
 
     private let state: Mutex<State>
@@ -36,6 +38,11 @@ nonisolated final class FakeMarketplace: OfferRepository, ReservationRepository,
     }
 
     func failReads(_ fail: Bool) { state.withLock { $0.failReads = fail } }
+
+    /// Makes the next `reserve` throw `error` instead of reserving.
+    func failNextReserve(with error: any Error) { state.withLock { $0.nextReserveError = error } }
+
+    var reservationCount: Int { state.withLock { $0.reservations.count } }
 
     private func read<T>(_ body: (State) -> T) throws -> T {
         try state.withLock { s in
@@ -54,7 +61,29 @@ nonisolated final class FakeMarketplace: OfferRepository, ReservationRepository,
     func changes() -> AsyncStream<MarketplaceChange> { broadcaster.stream() }
 
     // ReservationRepository (filled in by later sub-phases)
-    func reserve(offerID: String, quantity: Int, at now: Date) async throws -> Reservation { throw TestError() }
+    func reserve(offerID: String, quantity: Int, at now: Date) async throws -> Reservation {
+        let reservation = try state.withLock { s -> Reservation in
+            if let error = s.nextReserveError {
+                s.nextReserveError = nil
+                throw error
+            }
+            guard let index = s.offers.firstIndex(where: { $0.id == offerID }),
+                let restaurant = s.restaurants.first(where: { $0.id == s.offers[index].restaurantID })
+            else { throw ReservationError.offerNoLongerExists }
+            try ReservationPolicy.validateReservation(
+                of: s.offers[index], quantity: quantity, at: now, calendar: NYCalendar.calendar)
+            s.offers[index].quantityReserved += quantity
+            s.codes += 1
+            let reservation = Reservation(
+                id: UUID(), confirmationCode: "AB2\(s.codes)", quantity: quantity,
+                snapshot: OfferSnapshot(offer: s.offers[index], restaurant: restaurant), reservedAt: now)
+            s.reservations.append(reservation)
+            return reservation
+        }
+        broadcaster.send(.stockChanged(offerID: offerID))
+        broadcaster.send(.reservationsChanged)
+        return reservation
+    }
     func changeQuantity(reservationID: UUID, to quantity: Int, at now: Date) async throws -> Reservation {
         throw TestError()
     }
@@ -130,12 +159,12 @@ nonisolated enum Fixture {
     }
 
     static func flags(
-        mapBrowse: Bool = true, favorites: Bool = true, dietaryFilters: Bool = true, reviews: Bool = true,
-        commute: Bool = false
+        mapBrowse: Bool = true, favorites: Bool = true, notifications: Bool = true, dietaryFilters: Bool = true,
+        manageOrder: Bool = true, reviews: Bool = true, impact: Bool = true, commute: Bool = false
     ) -> FeatureFlags {
         FeatureFlags(
-            mapBrowse: mapBrowse, favorites: favorites, notifications: true, dietaryFilters: dietaryFilters,
-            manageOrder: true, reviews: reviews, impact: true, commute: commute)
+            mapBrowse: mapBrowse, favorites: favorites, notifications: notifications, dietaryFilters: dietaryFilters,
+            manageOrder: manageOrder, reviews: reviews, impact: impact, commute: commute)
     }
 
     static func restaurant(_ id: String, name: String, lat: Double, lng: Double) -> Restaurant {
