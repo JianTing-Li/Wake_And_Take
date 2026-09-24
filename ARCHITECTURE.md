@@ -34,7 +34,7 @@ A thin app target plus one local Swift package, `Packages/WakeAndTakeKit`:
 App target  ──►  CustomerFeatures, MockData, DesignSystem, Platform, Domain
 CustomerFeatures ──►  Domain, DesignSystem, Platform
 MockData    ──►  Domain, Platform
-DesignSystem ──►  (nothing; components take primitives)
+DesignSystem ──►  Domain (value types only, never repositories)
 Platform    ──►  Domain
 Domain      ──►  Foundation only
 ```
@@ -54,7 +54,8 @@ Hard rules:
   Only the app target knows the concrete stores exist.
 - **`Domain` has no UI, SwiftData or CoreLocation.** Category colors and SF Symbols live in
   `DesignSystem` (e.g. `FoodCategory+Style.swift`). Coordinates are plain `Double`s.
-- **DesignSystem components take primitives** or small display structs, never repositories.
+- **DesignSystem components take primitives** or small display structs, never repositories. DesignSystem may
+  import Domain for plain value types (e.g. `FoodCategory`, `Money`) so style extensions live next to components.
 - SwiftData `@Model` entities never leave `MockData`; they map to and from Domain structs.
 
 ---

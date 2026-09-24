@@ -32,7 +32,7 @@ let package = Package(
             resources: [.process("Resources")],
             swiftSettings: commonSettings
         ),
-        .target(name: "DesignSystem", swiftSettings: mainActorSettings),
+        .target(name: "DesignSystem", dependencies: ["Domain"], swiftSettings: mainActorSettings),
         .target(
             name: "CustomerFeatures",
             dependencies: ["Domain", "DesignSystem", "Platform"],
@@ -42,6 +42,7 @@ let package = Package(
         .testTarget(name: "DomainTests", dependencies: ["Domain"], swiftSettings: commonSettings),
         .testTarget(name: "PlatformTests", dependencies: ["Platform"], swiftSettings: commonSettings),
         .testTarget(name: "MockDataTests", dependencies: ["MockData"], swiftSettings: commonSettings),
+        .testTarget(name: "DesignSystemTests", dependencies: ["DesignSystem"], swiftSettings: mainActorSettings),
         .testTarget(
             name: "CustomerFeaturesTests",
             dependencies: ["CustomerFeatures"],
