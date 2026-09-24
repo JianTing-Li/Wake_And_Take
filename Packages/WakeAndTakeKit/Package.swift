@@ -26,7 +26,12 @@ let package = Package(
     targets: [
         .target(name: "Domain", swiftSettings: commonSettings),
         .target(name: "Platform", dependencies: ["Domain"], swiftSettings: commonSettings),
-        .target(name: "MockData", dependencies: ["Domain", "Platform"], swiftSettings: commonSettings),
+        .target(
+            name: "MockData",
+            dependencies: ["Domain", "Platform"],
+            resources: [.process("Resources")],
+            swiftSettings: commonSettings
+        ),
         .target(name: "DesignSystem", swiftSettings: mainActorSettings),
         .target(
             name: "CustomerFeatures",

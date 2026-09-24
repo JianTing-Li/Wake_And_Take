@@ -96,7 +96,7 @@ Hard rules:
       │ state                    │   └── AsyncStream<Change> ◄──────┤
       └──────────────────────────┘                                  ▼
                                                  MarketplaceStore / UserDataStore
-                                                 (@ModelActor, one shared ModelContainer)
+                                                 (ModelActor actors, one shared ModelContainer)
 ```
 
 - **`MarketplaceStore`** owns restaurants, offers, reservations and reviews. `reserve`, `changeQuantity`,
@@ -104,6 +104,10 @@ Hard rules:
   (`.soldOut`, `.windowClosed`, `.notVisibleYet`, `.invalidQuantity`, …).
 - **`UserDataStore`** owns favorites (by restaurant id), per-restaurant alert settings, preferences and the
   commute profile.
+- The stores *are* the concrete repositories (`MockData/Repositories/StoreRepositories.swift`): their
+  actor methods satisfy the Domain protocols directly. `DemoDataResetter` implements `DemoDataResetting`.
+- Offer templates are read from the bundled JSON on each launch (they're immutable config); restaurants,
+  offers, reservations and user data are SwiftData rows.
 - Each store emits changes on an `AsyncStream`. View models load in `.task`, observe the stream, and expose
   an explicit `state` (`loading`, `loaded`, `empty`, `failed`).
 - `AppDependencies` (the composition root) builds the container, stores, repositories, clock and flags,
@@ -111,7 +115,7 @@ Hard rules:
 
 ### Seed data
 
-`MockData/Resources/` holds two JSON files (source copies in `docs/seed/`):
+`MockData/Resources/` holds the two seed JSON files:
 
 - `lic_restaurants.json`: 21 fictional businesses on real LIC streets.
 - `offer_templates.json`: 32 daily templates with `HH:mm` pickup windows (New York time) and a
