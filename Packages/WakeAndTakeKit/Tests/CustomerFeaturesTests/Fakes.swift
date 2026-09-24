@@ -85,12 +85,63 @@ nonisolated final class FakeMarketplace: OfferRepository, ReservationRepository,
         return reservation
     }
     func changeQuantity(reservationID: UUID, to quantity: Int, at now: Date) async throws -> Reservation {
-        throw TestError()
+        try mutate(reservationID) { s, r, offerIndex in
+            let left = offerIndex.map { s.offers[$0].quantityLeft } ?? 0
+            try ReservationPolicy.validateChange(of: r, to: quantity, offerQuantityLeft: left, at: now)
+            if let i = offerIndex { s.offers[i].quantityReserved += quantity - r.quantity }
+            r.quantity = quantity
+        }
     }
     func cancel(reservationID: UUID, reason: CancelReason?, at now: Date) async throws -> Reservation {
-        throw TestError()
+        try mutate(reservationID) { s, r, offerIndex in
+            try ReservationPolicy.validateCancel(of: r, at: now)
+            if let i = offerIndex { s.offers[i].quantityReserved -= r.quantity }
+            r.cancelledAt = now
+            r.cancelReason = reason
+        }
     }
-    func markCollected(reservationID: UUID, at now: Date) async throws -> Reservation { throw TestError() }
+    func markCollected(reservationID: UUID, at now: Date) async throws -> Reservation {
+        try mutate(reservationID) { _, r, _ in
+            try ReservationPolicy.validateCollect(of: r, at: now)
+            r.collectedAt = now
+        }
+    }
+
+    /// Adds a reservation directly (as if made earlier) and takes its stock.
+    @discardableResult
+    func add(_ reservation: Reservation) -> Reservation {
+        state.withLock { s in
+            s.reservations.insert(reservation, at: 0)
+            if let i = s.offers.firstIndex(where: { $0.id == reservation.snapshot.offerID }) {
+                s.offers[i].quantityReserved += reservation.quantity
+            }
+        }
+        broadcaster.send(.reservationsChanged)
+        return reservation
+    }
+
+    func offerLeft(_ id: String) -> Int? { state.withLock { s in s.offers.first { $0.id == id }?.quantityLeft } }
+
+    private func mutate(
+        _ id: UUID, _ change: (inout State, inout Reservation, Int?) throws -> Void
+    ) throws -> Reservation {
+        let updated = try state.withLock { s -> Reservation in
+            if let error = s.nextReserveError {
+                s.nextReserveError = nil
+                throw error
+            }
+            guard let index = s.reservations.firstIndex(where: { $0.id == id }) else {
+                throw ReservationError.reservationNotFound
+            }
+            var reservation = s.reservations[index]
+            let offerIndex = s.offers.firstIndex { $0.id == reservation.snapshot.offerID }
+            try change(&s, &reservation, offerIndex)
+            s.reservations[index] = reservation
+            return reservation
+        }
+        broadcaster.send(.reservationsChanged)
+        return updated
+    }
     func reservations() async throws -> [Reservation] { try read(\.reservations) }
     func reservation(id: UUID) async throws -> Reservation? { try read { $0.reservations.first { $0.id == id } } }
 
@@ -183,6 +234,17 @@ nonisolated enum Fixture {
         restaurant("mid", name: "Mid Deli", lat: 40.7497, lng: -73.9390),
         restaurant("far", name: "Far Bistro", lat: 40.7580, lng: -73.9855),
     ]
+
+    /// A reservation for `offer` as it looked when reserved.
+    static func reservation(
+        for offer: Offer, quantity: Int = 1, reservedAt: Date = sep(24, 6), collectedAt: Date? = nil,
+        cancelledAt: Date? = nil, review: Review? = nil
+    ) -> Reservation {
+        Reservation(
+            id: UUID(), confirmationCode: "QW3E", quantity: quantity,
+            snapshot: OfferSnapshot(offer: offer, restaurant: restaurants.first { $0.id == offer.restaurantID }!),
+            reservedAt: reservedAt, collectedAt: collectedAt, cancelledAt: cancelledAt, review: review)
+    }
 
     static func offer(
         _ template: String, restaurant: String = "near", day: Int = 24, start: (Int, Int), end: (Int, Int),

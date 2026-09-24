@@ -7,7 +7,6 @@
 //
 
 import CustomerFeatures
-import Platform
 import SwiftUI
 
 struct CustomerShell: View {
@@ -15,22 +14,18 @@ struct CustomerShell: View {
 
     var body: some View {
         let navigation = dependencies.navigation
+        let screens = dependencies.screens
         let legacy = dependencies.legacyStore
 
-        CustomerTabView(navigation: navigation, ordersBadge: legacyActiveOrders) {
-            dependencies.screens.discoverTab()
+        CustomerTabView(navigation: navigation, ordersBadge: screens.ordersBadge) {
+            screens.discoverTab()
         } orders: {
-            OrdersView(store: legacy) { navigation.selectedTab = .discover }
+            screens.ordersTab()
         } favorites: {
             FavoritesView(store: legacy) { navigation.selectedTab = .discover }
         } profile: {
             ProfileView(store: legacy)
         }
-    }
-
-    /// Legacy badge until Orders is ported (4d).
-    private var legacyActiveOrders: Int {
-        let now = dependencies.clock.now
-        return dependencies.legacyStore.reservations.filter { $0.isActive(at: now) }.count
+        .task { await screens.runBackground() }
     }
 }
