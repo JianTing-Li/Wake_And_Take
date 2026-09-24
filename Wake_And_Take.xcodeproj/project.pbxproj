@@ -41,11 +41,6 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		6B61F3E1306441DF00D2CD39 /* Wake_And_Take */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Wake_And_Take;
-			sourceTree = "<group>";
-		};
 		6B7A00000000000000000030 /* App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -85,7 +80,6 @@
 			children = (
 				6B7A00000000000000000050 /* WakeAndTakeKit */,
 				6B7A00000000000000000030 /* App */,
-				6B61F3E1306441DF00D2CD39 /* Wake_And_Take */,
 				6B7A00000000000000000042 /* WakeAndTakeUITests */,
 				6B61F3E0306441DF00D2CD39 /* Products */,
 			);
@@ -114,7 +108,6 @@
 			buildRules = (
 			);
 			fileSystemSynchronizedGroups = (
-				6B61F3E1306441DF00D2CD39 /* Wake_And_Take */,
 				6B7A00000000000000000030 /* App */,
 			);
 			name = Wake_And_Take;
