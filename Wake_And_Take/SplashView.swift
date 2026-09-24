@@ -164,7 +164,7 @@ struct SplashView: View {
 
 // MARK: - Shapes
 
-struct EggShape: Shape {
+nonisolated struct EggShape: Shape {
     func path(in rect: CGRect) -> Path {
         let w = rect.width, h = rect.height
         var p = Path()
@@ -186,17 +186,17 @@ struct EggShape: Shape {
 }
 
 /// Zigzag points (in unit space) where the shell splits.
-private let crackPoints: [CGPoint] = [
+nonisolated private let crackPoints: [CGPoint] = [
     CGPoint(x: -0.05, y: 0.50), CGPoint(x: 0.12, y: 0.44), CGPoint(x: 0.26, y: 0.54),
     CGPoint(x: 0.40, y: 0.45), CGPoint(x: 0.53, y: 0.55), CGPoint(x: 0.66, y: 0.46),
     CGPoint(x: 0.80, y: 0.54), CGPoint(x: 0.92, y: 0.46), CGPoint(x: 1.05, y: 0.51),
 ]
 
-private func scaled(_ p: CGPoint, in rect: CGRect) -> CGPoint {
+nonisolated private func scaled(_ p: CGPoint, in rect: CGRect) -> CGPoint {
     CGPoint(x: rect.minX + p.x * rect.width, y: rect.minY + p.y * rect.height)
 }
 
-struct CrackLine: Shape {
+nonisolated struct CrackLine: Shape {
     func path(in rect: CGRect) -> Path {
         // Keep the visible crack inside the egg outline.
         let inset = crackPoints.dropFirst().dropLast()
@@ -206,7 +206,7 @@ struct CrackLine: Shape {
     }
 }
 
-struct ShellHalf: Shape {
+nonisolated struct ShellHalf: Shape {
     enum Side { case top, bottom }
     var side: Side
 
