@@ -1,6 +1,6 @@
 //
 //  TimeTravelView.swift
-//  WakeAndTake
+//  WalkAndTake
 //
 //  DEBUG: jump the app's clock to interesting New York times. Moving the clock
 //  triggers rollover (AppRoot watches clock changes), so crossing midnight or

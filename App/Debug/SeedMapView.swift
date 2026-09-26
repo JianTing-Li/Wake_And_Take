@@ -1,6 +1,6 @@
 //
 //  SeedMapView.swift
-//  WakeAndTake
+//  WalkAndTake
 //
 //  DEBUG: every seed restaurant on a map, with the service area, for sanity-checking
 //  coordinates. Restaurants outside the 1.5 mi area are listed in red.

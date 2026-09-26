@@ -1,6 +1,6 @@
-# Wake&Take Architecture
+# Walk & Take Architecture
 
-Wake&Take is an iOS marketplace for discounted **surprise bags** of surplus food from cafés, bakeries,
+Walk & Take is an iOS marketplace for discounted **surprise bags** of surplus food from cafés, bakeries,
 restaurants and markets in Long Island City (LIC). Unlike end-of-day apps, businesses sell throughout the
 day, especially breakfast. This build covers the **customer side** only. All data is mock and stays mock
 (no backend), but the mock layer behaves like a real marketplace: shared stock, atomic reservations,
@@ -28,7 +28,7 @@ pickup windows that open and close, and persistence across launches.
 
 ## 2. Modules
 
-A thin app target plus one local Swift package, `Packages/WakeAndTakeKit`:
+A thin app target plus one local Swift package, `Packages/WalkAndTakeKit`:
 
 ```
 App target  ──►  CustomerFeatures, MockData, DesignSystem, Platform, Domain
@@ -183,15 +183,15 @@ A compile-time `FeatureFlags` value is created in `AppDependencies` and injected
 
 ## 7. Running tests & debug tools
 
-Everything runs from the shared **Wake_And_Take** scheme (⌘U in Xcode): the five package test targets
-(Swift Testing) plus the `WakeAndTakeUITests` happy-path UI test (XCTest).
+Everything runs from the shared **Walk_And_Take** scheme (⌘U in Xcode): the five package test targets
+(Swift Testing) plus the `WalkAndTakeUITests` happy-path UI test (XCTest).
 
 ```sh
-xcodebuild test -project Wake_And_Take.xcodeproj -scheme Wake_And_Take \
+xcodebuild test -project Walk_And_Take.xcodeproj -scheme Walk_And_Take \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.5'
 ```
 
-Package tests alone (faster): `cd Packages/WakeAndTakeKit && xcodebuild test -scheme WakeAndTakeKit-Package
+Package tests alone (faster): `cd Packages/WalkAndTakeKit && xcodebuild test -scheme WalkAndTakeKit-Package
 -destination '…'`. Rule tests use a fixed New York calendar with Thu Sep 24, 2026 as "today".
 
 **DEBUG tools** (Profile → Developer):
