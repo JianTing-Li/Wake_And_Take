@@ -14,6 +14,7 @@ Zero third-party dependencies.
 ![Tests](https://img.shields.io/badge/tests-220%20passing-2EA44F)
 ![Dependencies](https://img.shields.io/badge/dependencies-0-lightgrey)
 
+<img src="docs/screenshots/splash.gif" width="260" alt="Launch splash: a walker strides in, grabs a rescue bag and walks off with it">&nbsp;
 <img src="docs/screenshots/reserve-flow.gif" width="260" alt="Reserving a bag: Discover, reserve, confirmation with QR code, pickup screen">
 
 <img src="docs/screenshots/discover.png" width="190" alt="Discover list">&nbsp;
