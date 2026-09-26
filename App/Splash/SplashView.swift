@@ -1,160 +1,78 @@
 //
 //  SplashView.swift
-//  WakeAndTake
+//  WalkAndTake
 //
 
 import DesignSystem
 import SwiftUI
 
-/// Launch splash: a cream egg on deep teal wobbles, cracks open,
-/// and the yolk rises like a morning sun before the app appears.
+/// Launch splash: a walker strides in, crouches to grab a rescue bag,
+/// and heads off with it swinging before the app appears.
 struct SplashView: View {
     var onFinished: () -> Void = {}
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var phase: Phase = .hidden
-    @State private var wobbles = 0
-    @State private var raysSpinning = false
-
-    private enum Phase: Int, Comparable {
-        case hidden, appear, crack, open, title
-        static func < (a: Phase, b: Phase) -> Bool { a.rawValue < b.rawValue }
-    }
-
-    private let eggWidth: CGFloat = 150
-    private var eggHeight: CGFloat { eggWidth * 1.3 }
+    @State private var start: Date?
+    @State private var pickedUp = false
 
     var body: some View {
         ZStack {
             Color.splashTeal.ignoresSafeArea()
 
-            VStack(spacing: 36) {
-                egg
-                    .frame(width: eggWidth, height: eggHeight)
-                    .scaleEffect(phase >= .appear ? 1 : 0.6)
-                    .opacity(phase >= .appear ? 1 : 0)
-                    .keyframeAnimator(initialValue: 0.0, trigger: wobbles) { content, angle in
-                        content.rotationEffect(.degrees(angle), anchor: .bottom)
-                    } keyframes: { _ in
-                        KeyframeTrack {
-                            CubicKeyframe(-9, duration: 0.12)
-                            CubicKeyframe(8, duration: 0.14)
-                            CubicKeyframe(-6, duration: 0.12)
-                            CubicKeyframe(4, duration: 0.10)
-                            CubicKeyframe(0, duration: 0.10)
-                        }
-                    }
+            TimelineView(.animation) { timeline in
+                let elapsed = start.map { timeline.date.timeIntervalSince($0) } ?? 0
 
-                VStack(spacing: 8) {
-                    Text("Wake & Take")
-                        .font(.brand(size: 40, weight: .heavy))
-                        .foregroundStyle(Color.shellCream)
-                    Text("Rescue breakfast on your way")
-                        .font(.brand(size: 17, weight: .semibold))
-                        .foregroundStyle(Color.yolk)
+                VStack(spacing: 28) {
+                    Canvas { ctx, size in
+                        ctx.scaleBy(x: WalkScene.scale, y: WalkScene.scale)
+                        WalkScene(time: reduceMotion ? WalkScene.standingWithBag : elapsed)
+                            .draw(in: &ctx, size: CGSize(width: size.width / WalkScene.scale, height: size.height / WalkScene.scale))
+                    } symbols: {
+                        Image(systemName: "leaf.fill")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(Color.splashTeal)
+                            .tag(WalkScene.leafSymbol)
+                    }
+                    .frame(height: 270)
+
+                    title(progress: reduceMotion ? elapsed / 0.4 : (elapsed - WalkScene.titleStart) / 0.45)
                 }
-                .opacity(phase >= .title ? 1 : 0)
-                .offset(y: phase >= .title ? 0 : 16)
             }
         }
-        .sensoryFeedback(.impact(weight: .medium), trigger: phase == .crack)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Walk & Take")
+        .sensoryFeedback(.impact(weight: .light), trigger: pickedUp)
+        .onAppear { start = .now }
         .task { await play() }
     }
 
-    // MARK: - Egg
-
-    private var egg: some View {
-        ZStack {
-            // Sun rays behind the yolk
-            rays
-                .offset(y: phase >= .open ? -eggHeight * 0.3 : 0)
-                .opacity(phase >= .open ? 1 : 0)
-                .scaleEffect(phase >= .open ? 1 : 0.4)
-
-            // Yolk sits inside the shell, then rises out of it
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [Color(red: 1, green: 0.86, blue: 0.35), .yolk],
-                        center: UnitPoint(x: 0.35, y: 0.3),
-                        startRadius: 2,
-                        endRadius: eggWidth * 0.4
-                    )
-                )
-                .frame(width: eggWidth * 0.62)
-                .offset(y: phase >= .open ? -eggHeight * 0.3 : eggHeight * 0.12)
-                .scaleEffect(phase >= .open ? 1.1 : 0.9)
-
-            // Bottom shell
-            EggShape()
-                .fill(shellGradient)
-                .mask(ShellHalf(side: .bottom))
-                .offset(y: phase >= .open ? 10 : 0)
-
-            // Whole egg hides the seam between the halves until it breaks
-            EggShape()
-                .fill(shellGradient)
-                .opacity(phase >= .open ? 0 : 1)
-                .animation(nil, value: phase)
-
-            // Top shell flies off
-            EggShape()
-                .fill(shellGradient)
-                .mask(ShellHalf(side: .top))
-                .rotationEffect(.degrees(phase >= .open ? -38 : 0), anchor: .bottomLeading)
-                .offset(x: phase >= .open ? -40 : 0, y: phase >= .open ? -130 : 0)
-                .opacity(phase >= .open ? 0 : 1)
-
-            // Crack line draws across the shell
-            CrackLine()
-                .trim(from: 0, to: phase >= .crack ? 1 : 0)
-                .stroke(Color.splashTeal, style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
-                .opacity(phase >= .open ? 0 : 1)
+    private func title(progress: Double) -> some View {
+        let p = WalkScene.easeOut(progress)
+        return VStack(spacing: 8) {
+            Text("Walk & Take")
+                .font(.brand(size: 40, weight: .heavy))
+                .foregroundStyle(Color.shellCream)
+            Text("Step out. Rescue good food.")
+                .font(.brand(size: 17, weight: .semibold))
+                .foregroundStyle(Color.yolk)
         }
-    }
-
-    private var rays: some View {
-        ZStack {
-            ForEach(0..<12, id: \.self) { i in
-                Capsule()
-                    .fill(Color.yolk.opacity(0.85))
-                    .frame(width: 6, height: 22)
-                    .offset(y: -eggWidth * 0.55)
-                    .rotationEffect(.degrees(Double(i) * 30))
-            }
-        }
-        .rotationEffect(.degrees(raysSpinning ? 30 : 0))
-    }
-
-    private var shellGradient: LinearGradient {
-        LinearGradient(
-            colors: [.shellCream, Color(red: 0.93, green: 0.87, blue: 0.76)],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+        .multilineTextAlignment(.center)
+        .padding(.horizontal, 24)
+        .opacity(p)
+        .offset(y: (1 - p) * 16)
     }
 
     // MARK: - Timeline
 
     private func play() async {
         if reduceMotion {
-            withAnimation(.easeOut(duration: 0.4)) { phase = .title }
-            await pause(1.4)
+            await pause(1.8)
             onFinished()
             return
         }
-
-        withAnimation(.spring(duration: 0.5, bounce: 0.4)) { phase = .appear }
-        await pause(0.55)
-        wobbles += 1
-        await pause(0.65)
-        withAnimation(.easeOut(duration: 0.25)) { phase = .crack }
-        await pause(0.35)
-        withAnimation(.spring(duration: 0.8, bounce: 0.35)) { phase = .open }
-        withAnimation(.linear(duration: 3)) { raysSpinning = true }
-        await pause(0.45)
-        withAnimation(.easeOut(duration: 0.5)) { phase = .title }
-        await pause(1.4)
+        await pause(WalkScene.crouchPeak)
+        pickedUp = true
+        await pause(WalkScene.finish - WalkScene.crouchPeak)
         onFinished()
     }
 
@@ -163,74 +81,216 @@ struct SplashView: View {
     }
 }
 
-// MARK: - Shapes
+// MARK: - Scene
 
-nonisolated struct EggShape: Shape {
-    func path(in rect: CGRect) -> Path {
-        let w = rect.width, h = rect.height
-        var p = Path()
-        p.move(to: CGPoint(x: 0.5 * w, y: 0))
-        p.addCurve(to: CGPoint(x: w, y: 0.62 * h),
-                   control1: CGPoint(x: 0.82 * w, y: 0),
-                   control2: CGPoint(x: w, y: 0.3 * h))
-        p.addCurve(to: CGPoint(x: 0.5 * w, y: h),
-                   control1: CGPoint(x: w, y: 0.88 * h),
-                   control2: CGPoint(x: 0.78 * w, y: h))
-        p.addCurve(to: CGPoint(x: 0, y: 0.62 * h),
-                   control1: CGPoint(x: 0.22 * w, y: h),
-                   control2: CGPoint(x: 0, y: 0.88 * h))
-        p.addCurve(to: CGPoint(x: 0.5 * w, y: 0),
-                   control1: CGPoint(x: 0, y: 0.3 * h),
-                   control2: CGPoint(x: 0.18 * w, y: 0))
-        return p.offsetBy(dx: rect.minX, dy: rect.minY)
-    }
-}
+/// Draws one frame of the walk-and-grab animation at a given time.
+struct WalkScene {
+    let time: Double
 
-/// Zigzag points (in unit space) where the shell splits.
-nonisolated private let crackPoints: [CGPoint] = [
-    CGPoint(x: -0.05, y: 0.50), CGPoint(x: 0.12, y: 0.44), CGPoint(x: 0.26, y: 0.54),
-    CGPoint(x: 0.40, y: 0.45), CGPoint(x: 0.53, y: 0.55), CGPoint(x: 0.66, y: 0.46),
-    CGPoint(x: 0.80, y: 0.54), CGPoint(x: 0.92, y: 0.46), CGPoint(x: 1.05, y: 0.51),
-]
+    static let leafSymbol = 0
+    /// Scene units are drawn this much larger on screen.
+    static let scale: CGFloat = 1.5
 
-nonisolated private func scaled(_ p: CGPoint, in rect: CGRect) -> CGPoint {
-    CGPoint(x: rect.minX + p.x * rect.width, y: rect.minY + p.y * rect.height)
-}
+    // Beats, in seconds.
+    static let walkInEnd = 1.25
+    static let crouchPeak = 1.5
+    static let standUp = 1.72
+    static let walkOutEnd = 2.9
+    static let titleStart = 2.1
+    static let finish = 3.5
+    static let standingWithBag = standUp
 
-nonisolated struct CrackLine: Shape {
-    func path(in rect: CGRect) -> Path {
-        // Keep the visible crack inside the egg outline.
-        let inset = crackPoints.dropFirst().dropLast()
-        var p = Path()
-        p.addLines(inset.map { scaled($0, in: rect) })
-        return p
-    }
-}
+    private var figureColor: Color { .shellCream }
+    private var farColor: Color { .shellCream.opacity(0.5) }
+    private var bagColor: Color { .yolk }
+    private let bagWidth: CGFloat = 30
+    private let handleHeight: CGFloat = 8
+    /// Roughly one full stride (two steps) at this leg length.
+    private let targetStride: CGFloat = 80
 
-nonisolated struct ShellHalf: Shape {
-    enum Side { case top, bottom }
-    var side: Side
+    func draw(in ctx: inout GraphicsContext, size: CGSize) {
+        let groundY = size.height - 24
+        let bagX = size.width * 0.58
 
-    func path(in rect: CGRect) -> Path {
-        let zig = crackPoints.map { scaled($0, in: rect) }
-        let pad = rect.height
-        var p = Path()
-        switch side {
-        case .top:
-            p.move(to: CGPoint(x: rect.minX - pad, y: rect.minY - pad))
-            p.addLine(to: CGPoint(x: rect.maxX + pad, y: rect.minY - pad))
-            p.addLine(to: CGPoint(x: rect.maxX + pad, y: zig.last!.y))
-            zig.reversed().forEach { p.addLine(to: $0) }
-            p.addLine(to: CGPoint(x: rect.minX - pad, y: zig.first!.y))
-        case .bottom:
-            p.move(to: CGPoint(x: rect.minX - pad, y: zig.first!.y))
-            zig.forEach { p.addLine(to: $0) }
-            p.addLine(to: CGPoint(x: rect.maxX + pad, y: zig.last!.y))
-            p.addLine(to: CGPoint(x: rect.maxX + pad, y: rect.maxY + pad))
-            p.addLine(to: CGPoint(x: rect.minX - pad, y: rect.maxY + pad))
+        drawGround(in: &ctx, width: size.width, y: groundY)
+
+        // The crouch decides where the walker stops and how tall the bag is,
+        // so the hand lands exactly on the handle.
+        let crouch = Skeleton(pose: .crouch).grounded(at: groundY)
+        let bagHeight = groundY - crouch.hand[1].y - handleHeight
+        let groundAnchor = CGPoint(x: bagX, y: crouch.hand[1].y)
+
+        let startX: CGFloat = -40
+        let stopX = bagX - crouch.hand[1].x
+        let distanceIn = stopX - startX
+        // Half-cycle count so the legs are together when the walker stops.
+        let cycles = max(1, (distanceIn / targetStride * 2).rounded() / 2)
+        let stride = distanceIn / cycles
+        let endX = size.width + 60
+
+        var hipX: CGFloat
+        var pose: Pose
+        let carrying = time >= Self.crouchPeak
+
+        switch time {
+        case ..<Self.walkInEnd:
+            let u = Self.clamp(time / Self.walkInEnd)
+            hipX = startX + distanceIn * u * (2 - u)
+            pose = .walking(phase: 2 * .pi * (hipX - startX) / stride, carrying: false)
+        case ..<Self.standUp:
+            hipX = stopX
+            let down = time < Self.crouchPeak
+            let c = down
+                ? Self.smooth((time - Self.walkInEnd) / (Self.crouchPeak - Self.walkInEnd))
+                : Self.smooth(1 - (time - Self.crouchPeak) / (Self.standUp - Self.crouchPeak))
+            pose = Pose.walking(phase: 2 * .pi * cycles, carrying: carrying).mixed(with: .crouch, c)
+        default:
+            let u = Self.clamp((time - Self.standUp) / (Self.walkOutEnd - Self.standUp))
+            hipX = stopX + (endX - stopX) * pow(u, 1.5)
+            pose = .walking(phase: 2 * .pi * (cycles + (hipX - stopX) / stride), carrying: true)
         }
-        p.closeSubpath()
-        return p
+
+        var body = Skeleton(pose: pose).grounded(at: groundY)
+        body.offset(dx: hipX, dy: 0)
+
+        if !carrying {
+            drawBag(in: &ctx, anchor: groundAnchor, height: bagHeight, swing: 0)
+        }
+
+        // Far limbs first, then torso, then near limbs for depth.
+        stroke(&ctx, [body.shoulder, body.elbow[0], body.hand[0]], farColor, 7)
+        stroke(&ctx, [body.hip, body.knee[0], body.foot[0]], farColor, 8)
+        stroke(&ctx, [body.hip, body.shoulder], figureColor, 9)
+        ctx.fill(Path(ellipseIn: CGRect(x: body.head.x - 10, y: body.head.y - 10, width: 20, height: 20)),
+                 with: .color(figureColor))
+        stroke(&ctx, [body.hip, body.knee[1], body.foot[1]], figureColor, 8)
+
+        if carrying {
+            drawBag(in: &ctx, anchor: body.hand[1], height: bagHeight, swing: -pose.upperArm[1] * 1.3)
+        }
+        stroke(&ctx, [body.shoulder, body.elbow[1], body.hand[1]], figureColor, 7)
+    }
+
+    private func drawGround(in ctx: inout GraphicsContext, width: CGFloat, y: CGFloat) {
+        let p = Self.easeOut(time / 0.4)
+        var line = Path()
+        line.move(to: CGPoint(x: width / 2 * (1 - p), y: y + 6))
+        line.addLine(to: CGPoint(x: width / 2 * (1 + p), y: y + 6))
+        ctx.stroke(line, with: .color(Color.shellCream.opacity(0.9)),
+                   style: StrokeStyle(lineWidth: 4, lineCap: .round))
+    }
+
+    /// `anchor` is the top of the handle; the bag hangs below it, rotated by `swing` degrees.
+    private func drawBag(in ctx: inout GraphicsContext, anchor: CGPoint, height: CGFloat, swing: Double) {
+        var bag = ctx
+        bag.translateBy(x: anchor.x, y: anchor.y)
+        bag.rotate(by: .degrees(swing))
+
+        var handle = Path()
+        handle.move(to: CGPoint(x: -7, y: handleHeight + 2))
+        handle.addQuadCurve(to: CGPoint(x: 7, y: handleHeight + 2), control: CGPoint(x: 0, y: -handleHeight))
+        bag.stroke(handle, with: .color(bagColor), style: StrokeStyle(lineWidth: 3, lineCap: .round))
+
+        let rect = CGRect(x: -bagWidth / 2, y: handleHeight, width: bagWidth, height: height)
+        bag.fill(Path(roundedRect: rect, cornerRadius: 4), with: .color(bagColor))
+        if let leaf = bag.resolveSymbol(id: Self.leafSymbol) {
+            bag.draw(leaf, at: CGPoint(x: rect.midX, y: rect.midY + 1))
+        }
+    }
+
+    private func stroke(_ ctx: inout GraphicsContext, _ points: [CGPoint], _ color: Color, _ width: CGFloat) {
+        var path = Path()
+        path.addLines(points)
+        ctx.stroke(path, with: .color(color),
+                   style: StrokeStyle(lineWidth: width, lineCap: .round, lineJoin: .round))
+    }
+
+    // MARK: Easing
+
+    static func clamp(_ x: Double) -> Double { min(max(x, 0), 1) }
+    static func smooth(_ x: Double) -> Double { let u = clamp(x); return u * u * (3 - 2 * u) }
+    static func easeOut(_ x: Double) -> Double { let u = clamp(x); return 1 - (1 - u) * (1 - u) }
+}
+
+// MARK: - Figure
+
+/// Joint angles in degrees. Limbs are measured forward of straight down,
+/// the torso forward of straight up. Index 0 is the far side, 1 the near side.
+nonisolated struct Pose {
+    var lean: Double
+    var thigh: [Double]
+    var shin: [Double]
+    var upperArm: [Double]
+    var forearm: [Double]
+
+    static func walking(phase: Double, carrying: Bool) -> Pose {
+        let s = sin(phase)
+        let legPhases = [phase + .pi, phase]
+        let thigh = [-28 * s, 28 * s]
+        // A knee bends while its leg swings forward.
+        let shin = zip(thigh, legPhases).map { $0 - 40 * max(0, cos($1)) }
+        var arm = [24 * s, -24 * s]
+        var forearm = arm.map { $0 + 25 }
+        if carrying {
+            arm[1] = -6 * s
+            forearm[1] = arm[1] + 4
+        }
+        return Pose(lean: 6, thigh: thigh, shin: shin, upperArm: arm, forearm: forearm)
+    }
+
+    static let crouch = Pose(lean: 35, thigh: [45, 45], shin: [-15, -15], upperArm: [10, 25], forearm: [20, 15])
+
+    func mixed(with other: Pose, _ k: Double) -> Pose {
+        func mix(_ a: [Double], _ b: [Double]) -> [Double] { zip(a, b).map { $0 + ($1 - $0) * k } }
+        return Pose(lean: lean + (other.lean - lean) * k,
+                    thigh: mix(thigh, other.thigh), shin: mix(shin, other.shin),
+                    upperArm: mix(upperArm, other.upperArm), forearm: mix(forearm, other.forearm))
+    }
+}
+
+/// Joint positions for a pose, starting with the hip at the origin.
+nonisolated struct Skeleton {
+    var hip = CGPoint.zero
+    var knee: [CGPoint], foot: [CGPoint]
+    var shoulder: CGPoint, head: CGPoint
+    var elbow: [CGPoint], hand: [CGPoint]
+
+    private static let thigh: CGFloat = 22, shin: CGFloat = 22
+    private static let torso: CGFloat = 34, neck: CGFloat = 14
+    private static let upperArm: CGFloat = 17, forearm: CGFloat = 17
+
+    init(pose: Pose) {
+        func limb(_ from: CGPoint, _ length: CGFloat, _ degrees: Double) -> CGPoint {
+            let r = degrees * .pi / 180
+            return CGPoint(x: from.x + length * sin(r), y: from.y + length * cos(r))
+        }
+        func up(_ length: CGFloat) -> CGPoint {
+            let r = pose.lean * .pi / 180
+            return CGPoint(x: length * sin(r), y: -length * cos(r))
+        }
+        let knee = pose.thigh.map { limb(.zero, Self.thigh, $0) }
+        self.knee = knee
+        foot = zip(knee, pose.shin).map { limb($0, Self.shin, $1) }
+        let shoulder = up(Self.torso)
+        self.shoulder = shoulder
+        head = up(Self.torso + Self.neck)
+        elbow = pose.upperArm.map { limb(shoulder, Self.upperArm, $0) }
+        hand = zip(elbow, pose.forearm).map { limb($0, Self.forearm, $1) }
+    }
+
+    /// Shifts the body so the lower foot rests on the ground.
+    func grounded(at groundY: CGFloat) -> Skeleton {
+        var s = self
+        s.offset(dx: 0, dy: groundY - max(foot[0].y, foot[1].y))
+        return s
+    }
+
+    mutating func offset(dx: CGFloat, dy: CGFloat) {
+        func move(_ p: CGPoint) -> CGPoint { CGPoint(x: p.x + dx, y: p.y + dy) }
+        hip = move(hip)
+        knee = knee.map(move); foot = foot.map(move)
+        shoulder = move(shoulder); head = move(head)
+        elbow = elbow.map(move); hand = hand.map(move)
     }
 }
 

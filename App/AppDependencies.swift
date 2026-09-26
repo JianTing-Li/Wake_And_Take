@@ -1,6 +1,6 @@
 //
 //  AppDependencies.swift
-//  WakeAndTake
+//  WalkAndTake
 //
 //  The composition root: the only place that knows concrete stores exist.
 //  Features receive Domain repository protocols and a Clock from here.
@@ -42,7 +42,7 @@ final class AppDependencies {
     var favorites: any FavoritesRepository { userData }
     var preferences: any PreferencesRepository { userData }
 
-    private static let log = Logger(subsystem: "org.pursuit.Wake-And-Take", category: "App")
+    private static let log = Logger(subsystem: "org.pursuit.Walk-And-Take", category: "App")
 
     init() {
         flags = .default
@@ -66,7 +66,7 @@ final class AppDependencies {
                 container = try ModelContainerFactory.makePersistent()
             #endif
         } catch {
-            fatalError("Wake&Take can't start without its seed data and store: \(error)")
+            fatalError("Walk & Take can't start without its seed data and store: \(error)")
         }
 
         marketplace = MarketplaceStore(modelContainer: container, seed: seed)

@@ -1,6 +1,6 @@
 //
 //  CustomerShell.swift
-//  WakeAndTake
+//  WalkAndTake
 //
 //  Assembles the customer tabs from CustomerScreens.
 //

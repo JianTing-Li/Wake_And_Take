@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Wake&amp;Take uses your location to show surprise bags near you. Without it, we show offers near Long Island City.</string>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

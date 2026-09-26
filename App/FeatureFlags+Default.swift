@@ -1,6 +1,6 @@
 //
 //  FeatureFlags+Default.swift
-//  WakeAndTake
+//  WalkAndTake
 //
 //  Compile-time feature switches. A flag that's off hides UI entry points only.
 //

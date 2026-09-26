@@ -1,6 +1,6 @@
 <div align="center">
 
-# Wake&Take
+# Walk & Take
 
 **Rescue surplus food from local cafés and bakeries, from breakfast to dinner.**
 
@@ -14,6 +14,7 @@ Zero third-party dependencies.
 ![Tests](https://img.shields.io/badge/tests-220%20passing-2EA44F)
 ![Dependencies](https://img.shields.io/badge/dependencies-0-lightgrey)
 
+<img src="docs/screenshots/splash.gif" width="260" alt="Launch splash: a walker strides in, grabs a rescue bag and walks off with it">&nbsp;
 <img src="docs/screenshots/reserve-flow.gif" width="260" alt="Reserving a bag: Discover, reserve, confirmation with QR code, pickup screen">
 
 <img src="docs/screenshots/discover.png" width="190" alt="Discover list">&nbsp;
@@ -70,8 +71,8 @@ About 9k lines of app code and 3.5k lines of tests.
 
 ## Run it
 
-1. Open `Wake_And_Take.xcodeproj` in Xcode 27.
-2. Pick the **Wake_And_Take** scheme and an iOS 26 simulator.
+1. Open `Walk_And_Take.xcodeproj` in Xcode 27.
+2. Pick the **Walk_And_Take** scheme and an iOS 26 simulator.
 3. Press ⌘R to run and ⌘U to test.
 
 <details>
@@ -89,7 +90,7 @@ Launch arguments (the UI test uses these): `-UITestInMemoryStore`, `-UITestNow 2
 Run the tests from the terminal:
 
 ```sh
-xcodebuild test -project Wake_And_Take.xcodeproj -scheme Wake_And_Take \
+xcodebuild test -project Walk_And_Take.xcodeproj -scheme Walk_And_Take \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.5'
 ```
 

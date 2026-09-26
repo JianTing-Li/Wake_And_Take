@@ -1,6 +1,6 @@
 //
 //  LaunchOptions.swift
-//  WakeAndTake
+//  WalkAndTake
 //
 //  DEBUG launch arguments for UI tests and demos:
 //    -UITestInMemoryStore            fresh in-memory data every launch

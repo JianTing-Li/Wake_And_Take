@@ -1,6 +1,6 @@
 //
 //  AppRoot.swift
-//  WakeAndTake
+//  WalkAndTake
 //
 //  Switches on the user's role, overlays the splash, and triggers rollover on
 //  launch, when the app becomes active, on significant time changes, and when
